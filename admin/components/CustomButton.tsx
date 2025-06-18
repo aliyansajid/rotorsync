@@ -13,7 +13,7 @@ type CustomButtonProps = {
   type?: "button" | "reset" | "submit";
 };
 
-export enum ButtonVariants {
+enum ButtonVariants {
   DEFAULT = "default",
   DESTRUCTIVE = "destructive",
   OUTLINE = "outline",
@@ -54,4 +54,4 @@ const CustomButton = ({
   );
 };
 
-export default CustomButton;
+export { CustomButton, ButtonVariants };

@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/dialog";
 import { CustomButton, ButtonVariants } from "../CustomButton";
 import { PlusCircle } from "lucide-react";
-import UserForm from "../forms/UserForm";
+import TrailerForm from "../forms/TrailerForm";
 
-export function UserModal() {
+const TrailerModal = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -24,13 +24,15 @@ export function UserModal() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New User</DialogTitle>
+          <DialogTitle>Add New Trailer</DialogTitle>
           <DialogDescription>
-            Fill out the form below to add a new user to the system.
+            Fill out the form below to add a new trailer to the system.
           </DialogDescription>
         </DialogHeader>
-        <UserForm />
+        <TrailerForm />
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default TrailerModal;

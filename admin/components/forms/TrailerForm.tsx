@@ -6,75 +6,75 @@ import { useForm } from "react-hook-form";
 import { Form } from "../ui/form";
 import CustomFormField, { FormFieldType } from "../CustomFormField";
 import { CustomButton, ButtonVariants } from "../CustomButton";
-import Link from "next/link";
 import { useState } from "react";
+import { PlusCircle } from "lucide-react";
 
 const formSchema = z.object({
-  password: z.string().min(1, "Password is required"),
-  confirmPassword: z.string().min(1, "Confirm password is required"),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(30, "Name cannot exceed 30 characters"),
+  serialNumber: z
+    .string()
+    .min(1, "Serial number is required")
+    .regex(
+      /^[a-zA-Z0-9]+$/,
+      "Serial number must contain only letters and numbers"
+    )
+    .max(30, "Serial number cannot exceed 30 characters"),
 });
 
-const ResetPasswordForm = () => {
+const TrailerForm = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      password: "",
-      confirmPassword: "",
+      name: "",
+      serialNumber: "",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
     console.log(values);
+    setIsLoading(false);
   }
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={"flex flex-col gap-6"}
+        className="flex flex-col gap-6"
       >
-        <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">Reset your password</h1>
-          <p className="text-muted-foreground text-sm text-balance">
-            Enter your new password to change
-          </p>
-        </div>
-
         <CustomFormField
           control={form.control}
           fieldType={FormFieldType.INPUT}
-          type="password"
-          name="password"
-          label="Password"
-          placeholder="********"
+          type="text"
+          name="name"
+          label="Trailer Name"
+          placeholder="e.g., FreightMaster"
         />
 
         <CustomFormField
           control={form.control}
           fieldType={FormFieldType.INPUT}
-          type="password"
-          name="confirmPassword"
-          label="Confirm Password"
-          placeholder="********"
+          type="text"
+          name="serialNumber"
+          label="Serial Number"
+          placeholder="e.g., ABC1234"
         />
 
         <CustomButton
           variant={ButtonVariants.DEFAULT}
-          text={isLoading ? "Resetting..." : "Reset Password"}
+          text={isLoading ? "Adding..." : "Add Trailer"}
+          icon={<PlusCircle />}
           disabled={isLoading}
           isLoading={isLoading}
         />
-
-        <Link
-          href="/login"
-          className="text-sm text-center underline-offset-4 hover:underline"
-        >
-          Back to login
-        </Link>
       </form>
     </Form>
   );
 };
 
-export default ResetPasswordForm;
+export default TrailerForm;
