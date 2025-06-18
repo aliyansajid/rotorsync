@@ -13,7 +13,7 @@ const formSchema = z.object({
   name: z
     .string()
     .min(1, "Name is required")
-    .max(30, "Name cannot exceed 30 characters"),
+    .max(50, "Name cannot exceed 50 characters"),
   serialNumber: z
     .string()
     .min(1, "Serial number is required")
@@ -21,7 +21,7 @@ const formSchema = z.object({
       /^[a-zA-Z0-9]+$/,
       "Serial number must contain only letters and numbers"
     )
-    .max(30, "Serial number cannot exceed 30 characters"),
+    .max(50, "Serial number cannot exceed 50 characters"),
 });
 
 const TrailerForm = () => {

@@ -10,6 +10,7 @@ import {
 import { Input } from "./ui/input";
 import { Control } from "react-hook-form";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "./ui/select";
+import { Slider } from "./ui/slider";
 
 type CustomFormFieldProps = {
   control: Control<any>;
@@ -25,6 +26,7 @@ export enum FormFieldType {
   INPUT = "input",
   CHECKBOX = "checkbox",
   SELECT = "select",
+  SLIDER = "slider",
 }
 
 const RenderField = ({
@@ -56,6 +58,25 @@ const RenderField = ({
             <SelectContent>{children}</SelectContent>
           </SelectContent>
         </Select>
+      );
+
+    case FormFieldType.SLIDER:
+      return (
+        <FormControl>
+          <div className="flex items-center gap-2">
+            <Slider
+              value={[field.value]}
+              onValueChange={(value) => field.onChange(value[0])}
+              min={0}
+              max={100}
+              step={1}
+              className="w-full"
+            />
+            <span className="text-sm text-muted-foreground">
+              {field.value}%
+            </span>
+          </div>
+        </FormControl>
       );
 
     default:
