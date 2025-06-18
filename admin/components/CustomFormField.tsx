@@ -9,6 +9,7 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { Control } from "react-hook-form";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "./ui/select";
 
 type CustomFormFieldProps = {
   control: Control<any>;
@@ -17,11 +18,13 @@ type CustomFormFieldProps = {
   name: string;
   label?: string;
   placeholder?: string;
+  children?: React.ReactNode;
 };
 
 export enum FormFieldType {
   INPUT = "input",
   CHECKBOX = "checkbox",
+  SELECT = "select",
 }
 
 const RenderField = ({
@@ -31,7 +34,7 @@ const RenderField = ({
   field: any;
   props: CustomFormFieldProps;
 }) => {
-  const { fieldType, type, placeholder } = props;
+  const { fieldType, type, placeholder, children } = props;
 
   switch (fieldType) {
     case FormFieldType.INPUT:
@@ -41,8 +44,22 @@ const RenderField = ({
         </FormControl>
       );
 
+    case FormFieldType.SELECT:
+      return (
+        <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <FormControl>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+          </FormControl>
+          <SelectContent>
+            <SelectContent>{children}</SelectContent>
+          </SelectContent>
+        </Select>
+      );
+
     default:
-      break;
+      return null;
   }
 };
 
@@ -54,7 +71,7 @@ const CustomFormField = (props: CustomFormFieldProps) => {
       name={name}
       render={({ field }) => (
         <FormItem>
-          {fieldType != FormFieldType.CHECKBOX && label && (
+          {fieldType !== FormFieldType.CHECKBOX && label && (
             <FormLabel>{label}</FormLabel>
           )}
           <RenderField field={field} props={props} />

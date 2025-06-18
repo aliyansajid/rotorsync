@@ -7,6 +7,8 @@ import { Form } from "../ui/form";
 import CustomFormField, { FormFieldType } from "../CustomFormField";
 import CustomButton, { ButtonVariants } from "../CustomButton";
 import { useState } from "react";
+import Link from "next/link";
+import { LogIn } from "lucide-react";
 
 const formSchema = z.object({
   email: z
@@ -42,39 +44,40 @@ const LoginForm = () => {
             Enter your email below to login to your account
           </p>
         </div>
-        <div className="grid gap-6">
+
+        <CustomFormField
+          control={form.control}
+          fieldType={FormFieldType.INPUT}
+          type="email"
+          name="email"
+          label="Email"
+          placeholder="m@example.com"
+        />
+
+        <div className="grid gap-2">
           <CustomFormField
             control={form.control}
             fieldType={FormFieldType.INPUT}
-            type="email"
-            name="email"
-            label="Email"
-            placeholder="m@example.com"
+            type="password"
+            name="password"
+            label="Password"
+            placeholder="********"
           />
-
-          <div className="grid gap-2">
-            <CustomFormField
-              control={form.control}
-              fieldType={FormFieldType.INPUT}
-              type="password"
-              name="password"
-              label="Password"
-              placeholder="********"
-            />
-            <a
-              href="/forgot-password"
-              className="text-sm underline-offset-4 hover:underline"
-            >
-              Forgot your password?
-            </a>
-          </div>
-          <CustomButton
-            variant={ButtonVariants.DEFAULT}
-            text={isLoading ? "Logging..." : "Login"}
-            disabled={isLoading}
-            isLoading={isLoading}
-          />
+          <Link
+            href="/forgot-password"
+            className="text-sm underline-offset-4 hover:underline"
+          >
+            Forgot your password?
+          </Link>
         </div>
+
+        <CustomButton
+          variant={ButtonVariants.DEFAULT}
+          text={isLoading ? "Logging..." : "Login"}
+          icon={<LogIn />}
+          disabled={isLoading}
+          isLoading={isLoading}
+        />
       </form>
     </Form>
   );

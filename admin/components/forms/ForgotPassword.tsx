@@ -8,6 +8,7 @@ import CustomButton, { ButtonVariants } from "../CustomButton";
 import CustomFormField, { FormFieldType } from "../CustomFormField";
 import Link from "next/link";
 import { useState } from "react";
+import { Send } from "lucide-react";
 
 const formSchema = z.object({
   email: z
@@ -42,28 +43,30 @@ const ForgotPasswordForm = () => {
             Enter your email and we'll send you a link to reset your password.
           </p>
         </div>
-        <div className="grid gap-6">
-          <CustomFormField
-            control={form.control}
-            fieldType={FormFieldType.INPUT}
-            type="email"
-            name="email"
-            label="Email"
-            placeholder="m@example.com"
-          />
-          <CustomButton
-            variant={ButtonVariants.DEFAULT}
-            text={isLoading ? "Sending..." : "Send Reset Link"}
-            disabled={isLoading}
-            isLoading={isLoading}
-          />
-          <Link
-            href="/login"
-            className="text-sm text-center underline-offset-4 hover:underline"
-          >
-            Back to login
-          </Link>
-        </div>
+
+        <CustomFormField
+          control={form.control}
+          fieldType={FormFieldType.INPUT}
+          type="email"
+          name="email"
+          label="Email"
+          placeholder="m@example.com"
+        />
+
+        <CustomButton
+          variant={ButtonVariants.DEFAULT}
+          text={isLoading ? "Sending..." : "Send Reset Link"}
+          icon={<Send />}
+          disabled={isLoading}
+          isLoading={isLoading}
+        />
+
+        <Link
+          href="/login"
+          className="text-sm text-center underline-offset-4 hover:underline"
+        >
+          Back to login
+        </Link>
       </form>
     </Form>
   );

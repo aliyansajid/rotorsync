@@ -6,9 +6,11 @@ import { Button } from "./ui/button";
 type CustomButtonProps = {
   variant: ButtonVariants;
   text: string;
-  type?: "button" | "reset" | "submit";
+  icon?: React.ReactNode;
   disabled?: boolean;
   isLoading?: boolean;
+  onClick?: () => void;
+  type?: "button" | "reset" | "submit";
 };
 
 export enum ButtonVariants {
@@ -20,14 +22,22 @@ export enum ButtonVariants {
   LINK = "link",
 }
 
-const CustomButton = (props: CustomButtonProps) => {
-  const { variant, text, type, disabled, isLoading } = props;
+const CustomButton = ({
+  variant,
+  text,
+  icon,
+  type,
+  disabled,
+  isLoading,
+  onClick,
+}: CustomButtonProps) => {
   return (
     <Button
       variant={variant}
       type={type}
       disabled={disabled || isLoading}
       size={"lg"}
+      onClick={onClick}
     >
       {isLoading ? (
         <span className="flex items-center gap-2">
@@ -35,7 +45,10 @@ const CustomButton = (props: CustomButtonProps) => {
           {text}
         </span>
       ) : (
-        text
+        <span className="flex items-center gap-2">
+          {icon}
+          {text}
+        </span>
       )}
     </Button>
   );

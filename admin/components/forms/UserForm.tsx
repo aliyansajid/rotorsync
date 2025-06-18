@@ -6,40 +6,62 @@ import { useForm } from "react-hook-form";
 import { Form } from "../ui/form";
 import CustomFormField, { FormFieldType } from "../CustomFormField";
 import CustomButton, { ButtonVariants } from "../CustomButton";
-import Link from "next/link";
 import { useState } from "react";
+import { SelectItem } from "../ui/select";
+import { PlusCircle } from "lucide-react";
 
 const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email"),
   password: z.string().min(1, "Password is required"),
-  confirmPassword: z.string().min(1, "Confirm password is required"),
+  role: z.enum(["ADMIN", "CREW", "PILOT"], {
+    required_error: "Role is required",
+  }),
 });
 
-const ResetPasswordForm = () => {
+const UserForm = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
+      email: "",
       password: "",
-      confirmPassword: "",
+      role: "CREW",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
   }
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className={"flex flex-col gap-6"}
       >
-        <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">Reset your password</h1>
-          <p className="text-muted-foreground text-sm text-balance">
-            Enter your new password to change
-          </p>
-        </div>
+        <CustomFormField
+          control={form.control}
+          fieldType={FormFieldType.INPUT}
+          type="text"
+          name="name"
+          label="Name"
+          placeholder="John Doe"
+        />
+
+        <CustomFormField
+          control={form.control}
+          fieldType={FormFieldType.INPUT}
+          type="email"
+          name="email"
+          label="Email"
+          placeholder="m@example.com"
+        />
 
         <CustomFormField
           control={form.control}
@@ -52,29 +74,26 @@ const ResetPasswordForm = () => {
 
         <CustomFormField
           control={form.control}
-          fieldType={FormFieldType.INPUT}
-          type="password"
-          name="confirmPassword"
-          label="Confirm Password"
-          placeholder="********"
-        />
+          fieldType={FormFieldType.SELECT}
+          name="role"
+          label="Role"
+          placeholder="Select a role"
+        >
+          <SelectItem value="ADMIN">Admin</SelectItem>
+          <SelectItem value="CREW">Crew</SelectItem>
+          <SelectItem value="PILOT">Pilot</SelectItem>
+        </CustomFormField>
 
         <CustomButton
           variant={ButtonVariants.DEFAULT}
-          text={isLoading ? "Resetting..." : "Reset Password"}
+          text={isLoading ? "Creating..." : "Create"}
+          icon={<PlusCircle />}
           disabled={isLoading}
           isLoading={isLoading}
         />
-
-        <Link
-          href="/login"
-          className="text-sm text-center underline-offset-4 hover:underline"
-        >
-          Back to login
-        </Link>
       </form>
     </Form>
   );
 };
 
-export default ResetPasswordForm;
+export default UserForm;
