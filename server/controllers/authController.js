@@ -49,7 +49,15 @@ const authController = {
         process.env.JWT_SECRET
       );
 
-      res.json({ user, token });
+      // Set HTTP-only cookie
+      res.cookie("token", token, {
+        httpOnly: true, // Prevents JavaScript access
+        secure: process.env.NODE_ENV === "production", // Use true in production with HTTPS
+        sameSite: "strict", // Protects against CSRF
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours expiration
+      });
+
+      res.json({ user });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Internal server error" });
