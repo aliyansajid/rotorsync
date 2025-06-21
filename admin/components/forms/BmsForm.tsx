@@ -69,7 +69,7 @@ const BmsForm = () => {
           fieldType={FormFieldType.INPUT}
           type="text"
           name="name"
-          label="BMS Name"
+          label="Name"
           placeholder="e.g., BatteryMonitor1"
         />
 

@@ -1,4 +1,4 @@
-import BmsModal from "@/components/modals/BmsModel";
+import BmsModal from "@/components/modals/BmsModal";
 import React from "react";
 
 const BMS = () => {
