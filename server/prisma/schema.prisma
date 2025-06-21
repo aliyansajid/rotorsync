@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Medium {
+  AIR
+  PROPANE
+  FRESH_WATER
+  WASTE_WATER
+  LIVE_WELL
+  BLACK_WATER
+  RAW_WATER
+  GASOLINE
+  DIESEL
+  OIL
+  LNG
+  HYDRAULIC_OIL
+}
+
+enum Role {
+  ADMIN
+  CREW
+  PILOT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CREW)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Trailer {
+  id            String         @id @default(uuid())
+  name          String
+  serialNumber  String         @unique
+  mopekaSensors MopekaSensor[] @relation("TrailerToMopeka")
+  bmsDevices    Bms[]          @relation("TrailerToBms")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model MopekaSensor {
+  id           String          @id @default(uuid())
+  name         String
+  sensorId     String          @unique
+  mqttTopic    String
+  trailerId    String
+  trailer      Trailer         @relation("TrailerToMopeka", fields: [trailerId], references: [id])
+  threshold    Int
+  tankSize     Float
+  tankSizeGal  Float
+  heightOffset Float
+  medium       Medium
+  readings     MopekaReading[] @relation("MopekaSensorToReading")
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Bms {
+  id         String       @id @default(uuid())
+  name       String
+  deviceName String       @unique
+  mqttTopic  String
+  trailerId  String
+  trailer    Trailer      @relation("TrailerToBms", fields: [trailerId], references: [id])
+  threshold  Int
+  readings   BmsReading[] @relation("BmsToReading")
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model MopekaReading {
+  id                            String       @id @default(uuid())
+  mopekaSensorId                String
+  mopekaSensor                  MopekaSensor @relation("MopekaSensorToReading", fields: [mopekaSensorId], references: [id])
+  battery_raw                   Int
+  battery_voltage               Float
+  battery_percentage            Float
+  temp_raw                      Int
+  temp_celsius                  Float
+  temp_fahrenheit               Float
+  tank_level_raw                Int
+  tank_level_mm_non_compensated Float
+  tank_level_in_non_compensated Float
+  tank_level_mm_compensated     Float
+  tank_level_in_compensated     Float
+  accelerometer_x               Float
+  accelerometer_y               Float
+  angle                         Float
+  reading_quality               Int
+  gallons                       Float
+  timestamp                     DateTime     @default(now())
+}
+
+model BmsReading {
+  id                                     String   @id @default(uuid())
+  bmsId                                  String
+  bms                                    Bms      @relation("BmsToReading", fields: [bmsId], references: [id])
+  total_voltage                          Float
+  current                                Float
+  power                                  Float
+  charging_power                         Float
+  discharging_power                      Float
+  capacity_remaining                     Float
+  nominal_capacity                       Float
+  charging_cycles                        Int
+  state_of_charge                        Int
+  battery_strings                        Int
+  software_version                       Float
+  balancing                              Boolean
+  balancer_status_bitmask                Int
+  errors_bitmask                         Int
+  operation_status_bitmask               Int
+  charging                               Boolean
+  discharging                            Boolean
+  errors                                 String?
+  operation_status                       String?
+  temperature_sensors                    Int
+  temperature_1                          Float?
+  temperature_2                          Float?
+  min_cell_voltage                       Float
+  max_cell_voltage                       Float
+  min_voltage_cell                       Int
+  max_voltage_cell                       Int
+  delta_cell_voltage                     Float
+  average_cell_voltage                   Float
+  cell_voltage_1                         Float?
+  cell_voltage_2                         Float?
+  cell_voltage_3                         Float?
+  cell_voltage_4                         Float?
+  device_model                           String?
+  short_circuit_error_count              Int
+  charge_overcurrent_error_count         Int
+  discharge_overcurrent_error_count      Int
+  cell_overvoltage_error_count           Int
+  cell_undervoltage_error_count          Int
+  charge_overtemperature_error_count     Int
+  charge_undertemperature_error_count    Int
+  discharge_overtemperature_error_count  Int
+  discharge_undertemperature_error_count Int
+  battery_overvoltage_error_count        Int
+  battery_undervoltage_error_count       Int
+  timestamp                              DateTime @default(now())
+}
