@@ -12,7 +12,7 @@ import { Control } from "react-hook-form";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "./ui/select";
 import { Slider } from "./ui/slider";
 
-type CustomFormFieldProps = {
+interface CustomFormFieldProps {
   control: Control<any>;
   fieldType: FormFieldType;
   type?: string;
@@ -20,9 +20,9 @@ type CustomFormFieldProps = {
   label?: string;
   placeholder?: string;
   children?: React.ReactNode;
-};
+}
 
-export enum FormFieldType {
+enum FormFieldType {
   INPUT = "input",
   CHECKBOX = "checkbox",
   SELECT = "select",
@@ -103,4 +103,4 @@ const CustomFormField = (props: CustomFormFieldProps) => {
   );
 };
 
-export default CustomFormField;
+export { CustomFormField, FormFieldType };

@@ -14,40 +14,45 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/context/auth";
 
-const data = {
-  user: {
-    name: "aliyan",
-    email: "aliyan@me.com",
-    avatar: "/avatars/shadcn.jpg",
+const navMain = [
+  {
+    title: "Users",
+    url: "/users",
+    icon: Users,
+    isActive: true,
   },
-
-  navMain: [
-    {
-      title: "Users",
-      url: "/users",
-      icon: Users,
-      isActive: true,
-    },
-    {
-      title: "Trailers",
-      url: "/trailers",
-      icon: Caravan,
-    },
-    {
-      title: "Mopeka",
-      url: "/mopeka",
-      icon: Droplets,
-    },
-    {
-      title: "BMS",
-      url: "/bms",
-      icon: Battery,
-    },
-  ],
-};
+  {
+    title: "Trailers",
+    url: "/trailers",
+    icon: Caravan,
+  },
+  {
+    title: "Mopeka",
+    url: "/mopeka",
+    icon: Droplets,
+  },
+  {
+    title: "BMS",
+    url: "/bms",
+    icon: Battery,
+  },
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user, loading } = useAuth();
+
+  const userData = user
+    ? {
+        name: user.name,
+        email: user.email,
+      }
+    : {
+        name: "Guest",
+        email: "guest@example.com",
+      };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -68,10 +73,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} loading={loading} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

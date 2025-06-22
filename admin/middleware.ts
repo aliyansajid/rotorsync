@@ -1,35 +1,46 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Define public routes (no authentication required)
 const publicRoutes = ["/login", "/forgot-password", "/reset-password/[token]"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // Check if the request is for a public route
   const isPublicRoute = publicRoutes.some(
-    (route) => pathname.startsWith(route) || pathname === route
+    (route) =>
+      pathname === route || pathname.startsWith(route.replace("[token]", ""))
   );
+  const accessToken = request.cookies.get("accessToken")?.value;
 
-  // Get the token from the cookie (HTTP-only, so we need a server-side check)
-  const token = request.cookies.get("token")?.value;
-
-  // If no token and not a public route, redirect to login
-  if (!token && !isPublicRoute) {
+  if (!accessToken && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // If token exists and on a public route, allow but consider redirecting to dashboard (optional)
-  if (token && isPublicRoute) {
+  if (accessToken && isPublicRoute) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // Proceed with the request for authenticated users on protected routes
+  if (accessToken && !isPublicRoute) {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
+        {
+          headers: { Cookie: `accessToken=${accessToken}` },
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      if (!response.ok || data.user.role !== "ADMIN") {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+    } catch (error) {
+      console.error("Middleware error:", error);
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
-// Configure matcher to apply middleware to all routes
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

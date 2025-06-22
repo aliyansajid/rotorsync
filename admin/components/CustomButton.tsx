@@ -3,7 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 
-type CustomButtonProps = {
+interface CustomButtonProps {
   variant: ButtonVariants;
   text: string;
   icon?: React.ReactNode;
@@ -11,7 +11,7 @@ type CustomButtonProps = {
   isLoading?: boolean;
   onClick?: () => void;
   type?: "button" | "reset" | "submit";
-};
+}
 
 enum ButtonVariants {
   DEFAULT = "default",

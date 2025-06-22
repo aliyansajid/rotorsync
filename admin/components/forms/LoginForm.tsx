@@ -4,14 +4,15 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form } from "../ui/form";
-import CustomFormField, { FormFieldType } from "../CustomFormField";
+import { CustomFormField, FormFieldType } from "../CustomFormField";
 import { CustomButton, ButtonVariants } from "../CustomButton";
 import { useState } from "react";
 import Link from "next/link";
 import { LogIn } from "lucide-react";
-import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import axiosInstance from "@/lib/axios";
+import { useAuth } from "@/context/auth";
 
 const formSchema = z.object({
   email: z
@@ -24,6 +25,7 @@ const formSchema = z.object({
 const LoginForm = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { setUser } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -35,18 +37,13 @@ const LoginForm = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        values,
-        { withCredentials: true } // Send cookies
-      );
-
+      const response = await axiosInstance.post("/login", values);
+      setUser(response.data.user);
       router.push("/");
     } catch (err: any) {
       toast.error(
-        err.response?.data?.error || "An error occurred during login"
+        err.response?.data?.error || "Something went wrong. Please try again."
       );
     } finally {
       setIsLoading(false);
