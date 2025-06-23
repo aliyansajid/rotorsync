@@ -12,26 +12,44 @@ import { PlusCircle } from "lucide-react";
 import TrailerForm from "../forms/TrailerForm";
 import { Button } from "../ui/button";
 
-const TrailerModal = () => {
+interface TrailerModalProps {
+  trailerId?: string;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onTrailerAdded?: () => void;
+}
+
+export function TrailerModal({
+  trailerId,
+  isOpen,
+  onOpenChange,
+  onTrailerAdded,
+}: TrailerModalProps) {
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button>
-          <PlusCircle />
-          Add
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      {!trailerId && (
+        <DialogTrigger asChild>
+          <Button>
+            <PlusCircle />
+            Add
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Trailer</DialogTitle>
+          <DialogTitle>
+            {trailerId ? "Edit Trailer" : "Add New Trailer"}
+          </DialogTitle>
           <DialogDescription>
-            Fill out the form below to add a new trailer to the system.
+            {trailerId
+              ? "Update the details below to edit the trailer."
+              : "Fill out the form below to add a new trailer to the system."}
           </DialogDescription>
         </DialogHeader>
-        <TrailerForm />
+        <TrailerForm trailerId={trailerId} onTrailerAdded={onTrailerAdded} />
       </DialogContent>
     </Dialog>
   );
-};
+}
 
 export default TrailerModal;

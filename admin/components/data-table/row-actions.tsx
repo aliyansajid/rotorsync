@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
-import { UserModal } from "../modals/UserModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,12 +29,19 @@ interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
   deleteEndpoint: string;
   entityName?: string;
+  EditModal?: React.ComponentType<{
+    id: string;
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    onEntityUpdated?: () => void;
+  }>;
 }
 
 export function DataTableRowActions<TData>({
   row,
   deleteEndpoint,
   entityName = "item",
+  EditModal,
 }: DataTableRowActionsProps<TData>) {
   const data = row.original as { id: string; name?: string };
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -68,9 +74,11 @@ export function DataTableRowActions<TData>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setIsEditModalOpen(true)}>
-            Edit
-          </DropdownMenuItem>
+          {EditModal && (
+            <DropdownMenuItem onClick={() => setIsEditModalOpen(true)}>
+              Edit
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
             Delete
@@ -78,11 +86,12 @@ export function DataTableRowActions<TData>({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {isEditModalOpen && (
-        <UserModal
-          userId={data.id}
+      {EditModal && isEditModalOpen && (
+        <EditModal
+          id={data.id}
           isOpen={isEditModalOpen}
           onOpenChange={setIsEditModalOpen}
+          onEntityUpdated={() => router.refresh()}
         />
       )}
 
@@ -94,8 +103,7 @@ export function DataTableRowActions<TData>({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete
-              the&nbsp;
+              This action cannot be undone. This will permanently delete the{" "}
               {entityName.toLowerCase()} from the system.
             </AlertDialogDescription>
           </AlertDialogHeader>
