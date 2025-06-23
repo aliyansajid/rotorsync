@@ -1,6 +1,7 @@
 const express = require("express");
 const authRoutes = require("./routes/auth");
 const bmsRoutes = require("./routes/bms");
+const mopekaRoutes = require("./routes/mopeka");
 const trailerRoutes = require("./routes/trailer");
 const userRoutes = require("./routes/user");
 const cors = require("cors");
@@ -20,6 +21,7 @@ app.use(
 
 app.use("/api/auth", authRoutes);
 app.use("/api/bms", bmsRoutes);
+app.use("/api/mopeka", mopekaRoutes);
 app.use("/api/trailers", trailerRoutes);
 app.use("/api/users", userRoutes);
 

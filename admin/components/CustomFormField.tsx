@@ -42,7 +42,20 @@ const RenderField = ({
     case FormFieldType.INPUT:
       return (
         <FormControl>
-          <Input {...field} type={type} placeholder={placeholder} />
+          <Input
+            {...field}
+            type={type}
+            placeholder={placeholder}
+            value={field.value ?? ""}
+            onChange={(e) => {
+              if (type === "number") {
+                const value = e.target.value;
+                field.onChange(value === "" ? undefined : Number(value));
+              } else {
+                field.onChange(e.target.value);
+              }
+            }}
+          />
         </FormControl>
       );
 

@@ -6,9 +6,12 @@ import { useForm } from "react-hook-form";
 import { Form } from "../ui/form";
 import { CustomFormField, FormFieldType } from "../CustomFormField";
 import { CustomButton, ButtonVariants } from "../CustomButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SelectItem } from "../ui/select";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, RefreshCcw } from "lucide-react";
+import axiosInstance from "../../lib/axios";
+import { toast } from "sonner";
+import { Trailer } from "../data-table/schema";
 import { mediumOptions } from "@/data";
 
 const formSchema = z.object({
@@ -19,7 +22,10 @@ const formSchema = z.object({
   sensorId: z
     .string()
     .min(1, "Sensor ID is required")
-    .regex(/^[a-zA-Z0-9]+$/, "Sensor ID must contain only letters and numbers")
+    .regex(
+      /^[a-zA-Z0-9:]+$/,
+      "Sensor ID must contain only letters, numbers, and colons"
+    )
     .max(50, "Sensor ID cannot exceed 50 characters"),
   mqttTopic: z
     .string()
@@ -29,7 +35,7 @@ const formSchema = z.object({
       "MQTT topic must contain only letters, numbers, and slashes"
     )
     .max(100, "MQTT topic cannot exceed 100 characters"),
-  trailer: z.string().min(1, "Trailer selection is required"),
+  trailerId: z.string().min(1, "Trailer selection is required"),
   threshold: z
     .number()
     .min(0, "Threshold must be at least 0")
@@ -62,8 +68,17 @@ const formSchema = z.object({
   ]),
 });
 
-const MopekaForm = () => {
+interface MopekaFormProps {
+  mopekaId?: string;
+  onMopekaAdded?: () => void;
+}
+
+export default function MopekaForm({
+  mopekaId,
+  onMopekaAdded,
+}: MopekaFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [trailers, setTrailers] = useState<Trailer[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,7 +86,7 @@ const MopekaForm = () => {
       name: "",
       sensorId: "",
       mqttTopic: "",
-      trailer: "",
+      trailerId: "",
       threshold: 20,
       tankSize: 0,
       tankSizeGal: 0,
@@ -80,10 +95,67 @@ const MopekaForm = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  useEffect(() => {
+    async function fetchTrailers() {
+      try {
+        const response = await axiosInstance.get("/trailers");
+        setTrailers(response.data.trailers);
+      } catch (error: any) {
+        toast.error(error.response?.data?.error || "Failed to fetch trailers.");
+      }
+    }
+    fetchTrailers();
+
+    if (mopekaId) {
+      async function fetchMopeka() {
+        try {
+          const response = await axiosInstance.get(`/mopeka/${mopekaId}`);
+          const mopeka = response.data.mopeka;
+          form.reset({
+            name: mopeka.name,
+            sensorId: mopeka.sensorId,
+            mqttTopic: mopeka.mqttTopic,
+            trailerId: mopeka.trailer.id,
+            threshold: mopeka.threshold,
+            tankSize: mopeka.tankSize,
+            tankSizeGal: mopeka.tankSizeGal,
+            heightOffset: mopeka.heightOffset,
+            medium: mopeka.medium,
+          });
+        } catch (error: any) {
+          toast.error(
+            error.response?.data?.error || "Failed to fetch Mopeka sensor."
+          );
+        }
+      }
+      fetchMopeka();
+    }
+  }, [mopekaId, form]);
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    console.log(values);
-    setIsLoading(false);
+    try {
+      if (mopekaId) {
+        const response = await axiosInstance.put(`/mopeka/${mopekaId}`, values);
+        toast.success(
+          response.data.message || "Mopeka sensor updated successfully!"
+        );
+      } else {
+        const response = await axiosInstance.post("/mopeka", values);
+        toast.success(
+          response.data.message || "Mopeka sensor created successfully!"
+        );
+      }
+      form.reset();
+      if (onMopekaAdded) onMopekaAdded();
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error ||
+        `Failed to ${mopekaId ? "update" : "create"} Mopeka sensor.`;
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -94,9 +166,13 @@ const MopekaForm = () => {
           className="flex flex-col w-full lg:w-1/2 gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Add Mopeka Sensor</h1>
+            <h1 className="text-2xl font-bold">
+              {mopekaId ? "Edit Mopeka Sensor" : "Add Mopeka Sensor"}
+            </h1>
             <p className="text-muted-foreground text-sm text-balance">
-              Enter the details below to add a new Mopeka sensor
+              {mopekaId
+                ? "Update the details below to edit the Mopeka sensor."
+                : "Enter the details below to add a new Mopeka sensor."}
             </p>
           </div>
 
@@ -171,26 +247,36 @@ const MopekaForm = () => {
           <CustomFormField
             control={form.control}
             fieldType={FormFieldType.SELECT}
-            name="trailer"
+            name="trailerId"
             label="Trailer"
             placeholder="Select a trailer"
           >
-            <SelectItem value="trailer1">FreightMaster</SelectItem>
-            <SelectItem value="trailer2">CargoPro</SelectItem>
-            <SelectItem value="trailer3">HeavyDutyX</SelectItem>
+            {trailers.map((trailer) => (
+              <SelectItem key={trailer.id} value={trailer.id}>
+                {trailer.name}
+              </SelectItem>
+            ))}
           </CustomFormField>
 
           <CustomFormField
             control={form.control}
             fieldType={FormFieldType.SLIDER}
             name="threshold"
-            label="Threshold"
+            label="Threshold (%)"
           />
 
           <CustomButton
             variant={ButtonVariants.DEFAULT}
-            text={isLoading ? "Adding..." : "Add"}
-            icon={<PlusCircle />}
+            text={
+              isLoading
+                ? mopekaId
+                  ? "Updating..."
+                  : "Adding..."
+                : mopekaId
+                ? "Update Mopeka Sensor"
+                : "Add Mopeka Sensor"
+            }
+            icon={mopekaId ? <RefreshCcw /> : <PlusCircle />}
             disabled={isLoading}
             isLoading={isLoading}
           />
@@ -198,6 +284,4 @@ const MopekaForm = () => {
       </div>
     </Form>
   );
-};
-
-export default MopekaForm;
+}

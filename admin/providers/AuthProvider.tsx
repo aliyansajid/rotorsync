@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await axiosInstance.post("/logout");
+      await axiosInstance.post("/auth/logout");
       setUser(null);
       router.push("/login");
     } catch (error) {

@@ -1,8 +1,11 @@
+"use client";
+
 import MopekaForm from "@/components/forms/MopekaForm";
-import React from "react";
+import { useRouter } from "next/navigation";
 
 const AddMopekaSensor = () => {
-  return <MopekaForm />;
+  const router = useRouter();
+  return <MopekaForm onMopekaAdded={() => router.push("/mopeka")} />;
 };
 
 export default AddMopekaSensor;

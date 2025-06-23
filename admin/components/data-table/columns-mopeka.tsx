@@ -4,10 +4,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./column-header";
 import { DataTableRowActions } from "./row-actions";
 import { format } from "date-fns";
-import { Bms } from "./schema";
-import BmsModal from "../modals/BmsModal";
+import { Mopeka } from "./schema";
 
-export const columns: ColumnDef<Bms>[] = [
+export const columns: ColumnDef<Mopeka>[] = [
   {
     id: "serial",
     header: ({ column }) => (
@@ -26,12 +25,12 @@ export const columns: ColumnDef<Bms>[] = [
     enableSorting: true,
   },
   {
-    accessorKey: "deviceName",
+    accessorKey: "sensorId",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Device Name" />
+      <DataTableColumnHeader column={column} title="Sensor ID" />
     ),
-    cell: ({ row }) => <div>{row.getValue("deviceName")}</div>,
-    enableSorting: true,
+    cell: ({ row }) => <div>{row.getValue("sensorId")}</div>,
+    enableSorting: false,
   },
   {
     accessorKey: "mqttTopic",
@@ -61,24 +60,56 @@ export const columns: ColumnDef<Bms>[] = [
     enableSorting: false,
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "tankSize",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Created At" />
+      <DataTableColumnHeader column={column} title="Tank Size (in)" />
     ),
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("createdAt"));
-      return <div>{format(date, "MMMM d, yyyy")}</div>;
-    },
+    cell: ({ row }) => <div>{row.getValue("tankSize")}</div>,
     enableSorting: false,
   },
+  {
+    accessorKey: "tankSizeGal",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Tank Size (gal)" />
+    ),
+    cell: ({ row }) => <div>{row.getValue("tankSizeGal")}</div>,
+    enableSorting: false,
+  },
+  {
+    accessorKey: "heightOffset",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Height Offset" />
+    ),
+    cell: ({ row }) => <div>{row.getValue("heightOffset")}</div>,
+    enableSorting: false,
+  },
+  {
+    accessorKey: "medium",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Medium" />
+    ),
+    cell: ({ row }) => <div>{row.getValue("medium")}</div>,
+    enableSorting: false,
+  },
+  // {
+  //   accessorKey: "createdAt",
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader column={column} title="Created At" />
+  //   ),
+  //   cell: ({ row }) => {
+  //     const date = new Date(row.getValue("createdAt"));
+  //     return <div>{format(date, "MMMM d, yyyy")}</div>;
+  //   },
+  //   enableSorting: false,
+  // },
   {
     id: "actions",
     cell: ({ row }) => (
       <DataTableRowActions
         row={row}
-        deleteEndpoint="/bms"
-        entityName="BMS"
-        EditModal={(props) => <BmsModal bmsId={props.id} {...props} />}
+        deleteEndpoint="/mopeka"
+        entityName="Mopeka Sensor"
+        editPath="/mopeka/edit"
       />
     ),
   },

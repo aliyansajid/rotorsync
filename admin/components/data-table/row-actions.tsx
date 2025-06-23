@@ -35,6 +35,7 @@ interface DataTableRowActionsProps<TData> {
     onOpenChange: (open: boolean) => void;
     onEntityUpdated?: () => void;
   }>;
+  editPath?: string; // New prop for redirect-based editing
 }
 
 export function DataTableRowActions<TData>({
@@ -42,6 +43,7 @@ export function DataTableRowActions<TData>({
   deleteEndpoint,
   entityName = "item",
   EditModal,
+  editPath,
 }: DataTableRowActionsProps<TData>) {
   const data = row.original as { id: string; name?: string };
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -61,6 +63,14 @@ export function DataTableRowActions<TData>({
     }
   };
 
+  const handleEdit = () => {
+    if (editPath) {
+      router.push(`${editPath}/${data.id}`);
+    } else if (EditModal) {
+      setIsEditModalOpen(true);
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -74,11 +84,7 @@ export function DataTableRowActions<TData>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {EditModal && (
-            <DropdownMenuItem onClick={() => setIsEditModalOpen(true)}>
-              Edit
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
             Delete
