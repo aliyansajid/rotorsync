@@ -12,7 +12,7 @@ import { LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axios";
-import { useAuth } from "@/context/auth";
+import { useAuth } from "@/providers/AuthProvider";
 
 const formSchema = z.object({
   email: z
@@ -38,7 +38,7 @@ const LoginForm = () => {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const response = await axiosInstance.post("/login", values);
+      const response = await axiosInstance.post("/auth/login", values);
       setUser(response.data.user);
       router.push("/");
     } catch (err: any) {

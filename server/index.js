@@ -1,5 +1,6 @@
 const express = require("express");
 const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/user");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const app = express();
@@ -16,6 +17,7 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 app.listen(5000, async () => {
   console.log("Server running on http://localhost:5000");

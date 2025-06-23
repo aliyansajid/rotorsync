@@ -36,12 +36,12 @@ const CustomButton = ({
       variant={variant}
       type={type}
       disabled={disabled || isLoading}
-      size={"lg"}
       onClick={onClick}
     >
       {isLoading ? (
         <span className="flex items-center gap-2">
           <Loader2 className="animate-spin" />
+          {icon}
           {text}
         </span>
       ) : (

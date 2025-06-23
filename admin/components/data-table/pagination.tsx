@@ -6,14 +6,14 @@ import {
   ChevronsRight,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../ui/select";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
@@ -37,7 +37,7 @@ export function DataTablePagination<TData>({
               table.setPageSize(Number(value));
             }}
           >
-            <SelectTrigger className="h-8 w-[70px]">
+            <SelectTrigger className="data-[size=default]:h-8 w-[70px]">
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">

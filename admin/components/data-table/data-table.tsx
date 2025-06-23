@@ -15,6 +15,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+
 import {
   Table,
   TableBody,
@@ -22,8 +23,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-
+} from "../ui/table";
 import { DataTablePagination } from "./pagination";
 import { DataTableToolbar } from "./toolbar";
 

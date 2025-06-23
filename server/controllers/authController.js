@@ -15,35 +15,6 @@ const authController = {
       const user = await prisma.user.create({
         data: { name, email, password: hashedPassword, role },
       });
-      const accessToken = jwt.sign(
-        { id: user.id, role: user.role, name: user.name, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: "1d" }
-      );
-      const refreshToken = jwt.sign(
-        { id: user.id },
-        process.env.JWT_REFRESH_SECRET,
-        { expiresIn: "7d" }
-      );
-      await prisma.refreshToken.create({
-        data: {
-          token: refreshToken,
-          userId: user.id,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        },
-      });
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 24 * 60 * 60 * 1000,
-      });
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
       res.status(201).json({
         user: {
           id: user.id,
@@ -51,6 +22,7 @@ const authController = {
           email: user.email,
           role: user.role,
         },
+        message: "User registered successfully.",
       });
     } catch (error) {
       console.error("Registration error:", error);

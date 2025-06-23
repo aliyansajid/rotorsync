@@ -8,28 +8,43 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CustomButton, ButtonVariants } from "../CustomButton";
 import { PlusCircle } from "lucide-react";
 import UserForm from "../forms/UserForm";
+import { Button } from "../ui/button";
 
-export function UserModal() {
+interface UserModalProps {
+  userId?: string;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onUserAdded?: () => void;
+}
+
+export function UserModal({
+  userId,
+  isOpen,
+  onOpenChange,
+  onUserAdded,
+}: UserModalProps) {
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <CustomButton
-          variant={ButtonVariants.DEFAULT}
-          text="Add"
-          icon={<PlusCircle />}
-        />
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      {!userId && (
+        <DialogTrigger asChild>
+          <Button>
+            <PlusCircle />
+            Add
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New User</DialogTitle>
+          <DialogTitle>{userId ? "Edit User" : "Create New User"}</DialogTitle>
           <DialogDescription>
-            Fill out the form below to add a new user to the system.
+            {userId
+              ? "Update the details below to edit the user."
+              : "Fill out the form below to add a new user to the system."}
           </DialogDescription>
         </DialogHeader>
-        <UserForm />
+        <UserForm userId={userId} onUserAdded={onUserAdded} />
       </DialogContent>
     </Dialog>
   );

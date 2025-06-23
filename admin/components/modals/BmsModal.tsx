@@ -8,20 +8,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CustomButton, ButtonVariants } from "../CustomButton";
 import { PlusCircle } from "lucide-react";
-import TrailerForm from "../forms/TrailerForm";
 import BmsForm from "../forms/BmsForm";
+import { Button } from "../ui/button";
 
 const BmsModal = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <CustomButton
-          variant={ButtonVariants.DEFAULT}
-          text="Add"
-          icon={<PlusCircle />}
-        />
+        <Button>
+          <PlusCircle />
+          Add
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

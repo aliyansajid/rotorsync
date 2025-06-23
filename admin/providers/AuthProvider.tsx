@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const response = await axiosInstance.get("/me");
+      const response = await axiosInstance.get("/auth/me");
       setUser(response.data.user);
     } catch (error) {
       setUser(null);

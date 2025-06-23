@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/auth`,
+  baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api`,
   withCredentials: true,
 });
 
@@ -12,12 +12,12 @@ axiosInstance.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url.includes("/login") &&
-      !originalRequest.url.includes("/logout")
+      !originalRequest.url.includes("/auth/login") &&
+      !originalRequest.url.includes("/auth/logout")
     ) {
       originalRequest._retry = true;
       try {
-        const response = await axiosInstance.post("/refresh");
+        const response = await axiosInstance.post("/auth/refresh");
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         window.location.href = "/login";
