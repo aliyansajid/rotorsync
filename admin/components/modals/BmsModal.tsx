@@ -12,26 +12,42 @@ import { PlusCircle } from "lucide-react";
 import BmsForm from "../forms/BmsForm";
 import { Button } from "../ui/button";
 
-const BmsModal = () => {
+interface BmsModalProps {
+  bmsId?: string;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onBmsAdded?: () => void;
+}
+
+export function BmsModal({
+  bmsId,
+  isOpen,
+  onOpenChange,
+  onBmsAdded,
+}: BmsModalProps) {
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button>
-          <PlusCircle />
-          Add
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      {!bmsId && (
+        <DialogTrigger asChild>
+          <Button>
+            <PlusCircle />
+            Add
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New BMS</DialogTitle>
+          <DialogTitle>{bmsId ? "Edit BMS" : "Add New BMS"}</DialogTitle>
           <DialogDescription>
-            Fill out the form below to add a new bms to the system.
+            {bmsId
+              ? "Update the details below to edit the BMS."
+              : "Fill out the form below to add a new BMS to the system."}
           </DialogDescription>
         </DialogHeader>
-        <BmsForm />
+        <BmsForm bmsId={bmsId} onBmsAdded={onBmsAdded} />
       </DialogContent>
     </Dialog>
   );
-};
+}
 
 export default BmsModal;

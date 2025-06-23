@@ -6,9 +6,12 @@ import { useForm } from "react-hook-form";
 import { Form } from "../ui/form";
 import { CustomFormField, FormFieldType } from "../CustomFormField";
 import { CustomButton, ButtonVariants } from "../CustomButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SelectItem } from "../ui/select";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, RefreshCcw } from "lucide-react";
+import axiosInstance from "../../lib/axios";
+import { toast } from "sonner";
+import { Trailer } from "../data-table/schema";
 
 const formSchema = z.object({
   name: z
@@ -31,15 +34,21 @@ const formSchema = z.object({
       "MQTT topic must contain only letters, numbers, and slashes"
     )
     .max(100, "MQTT topic cannot exceed 100 characters"),
-  trailer: z.string().min(1, "Trailer selection is required"),
+  trailerId: z.string().min(1, "Trailer selection is required"),
   threshold: z
     .number()
     .min(0, "Threshold must be at least 0")
     .max(100, "Threshold cannot exceed 100"),
 });
 
-const BmsForm = () => {
+interface BmsFormProps {
+  bmsId?: string;
+  onBmsAdded?: () => void;
+}
+
+export default function BmsForm({ bmsId, onBmsAdded }: BmsFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [trailers, setTrailers] = useState<Trailer[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,15 +56,62 @@ const BmsForm = () => {
       name: "",
       deviceName: "",
       mqttTopic: "",
-      trailer: "",
+      trailerId: "",
       threshold: 20,
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  useEffect(() => {
+    async function fetchTrailers() {
+      try {
+        const response = await axiosInstance.get("/trailers");
+        setTrailers(response.data.trailers);
+      } catch (error: any) {
+        toast.error(error.response?.data?.error || "Failed to fetch trailers.");
+      }
+    }
+    fetchTrailers();
+
+    if (bmsId) {
+      async function fetchBms() {
+        try {
+          const response = await axiosInstance.get(`/bms/${bmsId}`);
+          const bms = response.data.bms;
+          form.reset({
+            name: bms.name,
+            deviceName: bms.deviceName,
+            mqttTopic: bms.mqttTopic,
+            trailerId: bms.trailer.id,
+            threshold: bms.threshold,
+          });
+        } catch (error: any) {
+          toast.error(error.response?.data?.error || "Failed to fetch BMS.");
+        }
+      }
+      fetchBms();
+    }
+  }, [bmsId, form]);
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    console.log(values);
-    setIsLoading(false);
+    try {
+      if (bmsId) {
+        const response = await axiosInstance.put(`/bms/${bmsId}`, values);
+        toast.success(response.data.message || "BMS updated successfully!");
+      } else {
+        const response = await axiosInstance.post("/bms", values);
+        toast.success(response.data.message || "BMS created successfully!");
+      }
+      form.reset();
+      if (onBmsAdded) onBmsAdded();
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error ||
+        `Failed to ${bmsId ? "update" : "create"} BMS.`;
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -94,32 +150,40 @@ const BmsForm = () => {
         <CustomFormField
           control={form.control}
           fieldType={FormFieldType.SELECT}
-          name="trailer"
+          name="trailerId"
           label="Trailer"
           placeholder="Select a trailer"
         >
-          <SelectItem value="trailer1">FreightMaster</SelectItem>
-          <SelectItem value="trailer2">CargoPro</SelectItem>
-          <SelectItem value="trailer3">HeavyDutyX</SelectItem>
+          {trailers.map((trailer) => (
+            <SelectItem key={trailer.id} value={trailer.id}>
+              {trailer.name}
+            </SelectItem>
+          ))}
         </CustomFormField>
 
         <CustomFormField
           control={form.control}
           fieldType={FormFieldType.SLIDER}
           name="threshold"
-          label="Threshold"
+          label="Threshold (%)"
         />
 
         <CustomButton
           variant={ButtonVariants.DEFAULT}
-          text={isLoading ? "Adding..." : "Add BMS"}
-          icon={<PlusCircle />}
+          text={
+            isLoading
+              ? bmsId
+                ? "Updating..."
+                : "Adding..."
+              : bmsId
+              ? "Update BMS"
+              : "Add BMS"
+          }
+          icon={bmsId ? <RefreshCcw /> : <PlusCircle />}
           disabled={isLoading}
           isLoading={isLoading}
         />
       </form>
     </Form>
   );
-};
-
-export default BmsForm;
+}

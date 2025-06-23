@@ -4,10 +4,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./column-header";
 import { DataTableRowActions } from "./row-actions";
 import { format } from "date-fns";
-import { User } from "./schema";
-import { UserModal } from "../modals/UserModal";
+import { Bms } from "./schema";
+import BmsModal from "../modals/BmsModal";
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<Bms>[] = [
   {
     id: "serial",
     header: ({ column }) => (
@@ -26,19 +26,38 @@ export const columns: ColumnDef<User>[] = [
     enableSorting: true,
   },
   {
-    accessorKey: "email",
+    accessorKey: "deviceName",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Email" />
+      <DataTableColumnHeader column={column} title="Device Name" />
     ),
-    cell: ({ row }) => <div>{row.getValue("email")}</div>,
+    cell: ({ row }) => <div>{row.getValue("deviceName")}</div>,
     enableSorting: false,
   },
   {
-    accessorKey: "role",
+    accessorKey: "mqttTopic",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Role" />
+      <DataTableColumnHeader column={column} title="MQTT Topic" />
     ),
-    cell: ({ row }) => <div>{row.getValue("role")}</div>,
+    cell: ({ row }) => <div>{row.getValue("mqttTopic")}</div>,
+    enableSorting: false,
+  },
+  {
+    accessorKey: "trailer",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Trailer" />
+    ),
+    cell: ({ row }) => {
+      const trailer = row.getValue("trailer") as { name: string };
+      return <div>{trailer.name}</div>;
+    },
+    enableSorting: false,
+  },
+  {
+    accessorKey: "threshold",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Threshold (%)" />
+    ),
+    cell: ({ row }) => <div>{row.getValue("threshold")}%</div>,
     enableSorting: false,
   },
   {
@@ -57,9 +76,9 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => (
       <DataTableRowActions
         row={row}
-        deleteEndpoint="/users"
-        entityName="User"
-        EditModal={(props) => <UserModal userId={props.id} {...props} />}
+        deleteEndpoint="/bms"
+        entityName="BMS"
+        EditModal={(props) => <BmsModal bmsId={props.id} {...props} />}
       />
     ),
   },
