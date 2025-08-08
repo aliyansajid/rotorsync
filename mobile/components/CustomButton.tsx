@@ -3,7 +3,7 @@ import { Text, TouchableOpacity, ActivityIndicator } from "react-native";
 interface CustomButtonProps {
   title: string;
   onPress?: () => void;
-  variant?: "primary" | "secondary" | "outline";
+  variant?: "primary" | "secondary" | "outline" | "destructive";
   disabled?: boolean;
   loading?: boolean;
 }
@@ -17,7 +17,7 @@ const CustomButton = ({
 }: CustomButtonProps) => {
   const getButtonStyles = () => {
     const baseStyles =
-      "h-14 rounded-xl items-center justify-center gap-2 w-full";
+      "h-16 rounded-xl items-center justify-center gap-2 w-full";
 
     let variantStyles = "";
     switch (variant) {
@@ -26,6 +26,9 @@ const CustomButton = ({
         break;
       case "outline":
         variantStyles = "bg-transparent border border-primary";
+        break;
+      case "destructive":
+        variantStyles = "bg-destructive border border-destructive";
         break;
       default:
         variantStyles = "bg-primary";
@@ -45,6 +48,8 @@ const CustomButton = ({
         return "text-primary text-base font-semibold";
       case "outline":
         return "text-primary text-base font-semibold";
+      case "destructive":
+        return "text-destructive-foreground text-base font-semibold";
       default:
         return "text-primary-foreground text-base font-semibold";
     }

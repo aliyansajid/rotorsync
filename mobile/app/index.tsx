@@ -7,7 +7,7 @@ const OnboardingScreen = () => {
   const router = useRouter();
 
   const onGetStarted = () => {
-    router.push("/sign-up");
+    router.push("/home");
   };
 
   return (

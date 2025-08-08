@@ -48,7 +48,6 @@ const LoginScreen = () => {
           <View className="w-14 h-14 bg-white/20 rounded-xl items-center justify-center mb-6">
             <ShieldCheck size={28} color="white" />
           </View>
-
           <Text className="text-white text-3xl font-semibold text-center mb-2">
             Welcome Back
           </Text>
@@ -63,25 +62,23 @@ const LoginScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View className="mx-5 mt-8 gap-6">
-          <View className="gap-4">
-            <CustomInput
-              label="Email"
-              placeholder="m@example.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+          <CustomInput
+            label="Email"
+            placeholder="m@example.com"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-            <CustomInput
-              label="Password"
-              placeholder="********"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-            />
-          </View>
+          <CustomInput
+            label="Password"
+            placeholder="********"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+          />
 
           <View className="flex-row items-center justify-between">
             <TouchableOpacity

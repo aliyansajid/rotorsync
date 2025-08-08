@@ -35,10 +35,10 @@ const CustomInput = ({
 
   return (
     <View className="gap-2">
-      <Text className="text-sm leading-none font-medium">{label}</Text>
+      <Text className="text-muted-foreground text-sm font-medium">{label}</Text>
       <View className="relative">
         <TextInput
-          className={`h-14 border rounded-xl bg-transparent px-4 py-3 text-base shadow-xs ${
+          className={`h-16 border rounded-xl bg-transparent px-4 text-base shadow-xs ${
             isFocused ? "border-ring" : "border-input"
           }`}
           placeholder={placeholder}
@@ -54,7 +54,7 @@ const CustomInput = ({
 
         {secureTextEntry && (
           <TouchableOpacity
-            className="absolute top-0 right-4 h-14 justify-center"
+            className="absolute top-0 right-4 h-16 justify-center"
             onPress={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (
