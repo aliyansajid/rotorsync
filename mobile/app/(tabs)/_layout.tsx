@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import { Home, Activity, Map, Settings } from "lucide-react-native";
+import { PlatformPressable } from "@react-navigation/elements";
 
 export default function TabLayout() {
   return (
@@ -9,9 +10,9 @@ export default function TabLayout() {
         tabBarInactiveTintColor: "#737373",
         tabBarStyle: {
           backgroundColor: "#ffffff",
-          borderTopWidth: 1,
-          borderTopColor: "#e5e5e5",
-          height: 84,
+          borderTopWidth: 0,
+          borderTopColor: "#737373",
+          height: 90,
           paddingBottom: 8,
           paddingTop: 8,
         },
@@ -20,6 +21,12 @@ export default function TabLayout() {
           fontWeight: "500",
         },
         headerShown: false,
+        tabBarButton: (props) => (
+          <PlatformPressable
+            {...props}
+            android_ripple={{ color: "transparent" }}
+          />
+        ),
       }}
     >
       <Tabs.Screen

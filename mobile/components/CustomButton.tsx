@@ -20,9 +20,10 @@ const CustomButton = ({
       "h-16 rounded-xl items-center justify-center gap-2 w-full";
 
     let variantStyles = "";
+
     switch (variant) {
       case "secondary":
-        variantStyles = "bg-[#E0FFF5]";
+        variantStyles = "bg-primary-accent";
         break;
       case "outline":
         variantStyles = "bg-transparent border border-primary";

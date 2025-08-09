@@ -8,13 +8,12 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Link, useRouter } from "expo-router";
+import { Link } from "expo-router";
 import { RotateCcw } from "lucide-react-native";
 import CustomInput from "@/components/CustomInput";
 import CustomButton from "@/components/CustomButton";
 
 const ForgotPasswordScreen = () => {
-  const router = useRouter();
   const [email, setEmail] = useState("");
 
   const onResetPassword = () => {
@@ -45,7 +44,6 @@ const ForgotPasswordScreen = () => {
           <View className="w-14 h-14 bg-white/20 rounded-xl items-center justify-center mb-6">
             <RotateCcw size={28} color="white" />
           </View>
-
           <Text className="text-white text-3xl font-semibold text-center mb-2">
             Reset Password
           </Text>
@@ -59,7 +57,7 @@ const ForgotPasswordScreen = () => {
         className="flex-1 bg-background"
         showsVerticalScrollIndicator={false}
       >
-        <View className="mx-5 mt-8 gap-6">
+        <View className="m-6 gap-6">
           <CustomInput
             label="Email"
             placeholder="m@example.com"

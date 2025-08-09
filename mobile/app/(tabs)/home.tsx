@@ -1,16 +1,8 @@
-import { View, Text, StatusBar, Switch, TouchableOpacity } from "react-native";
+import { View, Text, StatusBar } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  CloudSun,
-  Droplet,
-  Battery,
-  Cpu,
-  Compass,
-  Bluetooth,
-  BluetoothOff,
-} from "lucide-react-native";
-import { router } from "expo-router";
+import { CloudSun, Droplet, Battery, Cpu, Compass } from "lucide-react-native";
+import DeviceCard from "@/components/DeviceCard";
 
 const HomeScreen = () => {
   const [devices, setDevices] = useState({
@@ -28,88 +20,6 @@ const HomeScreen = () => {
         isEnabled: !prev[deviceKey].isEnabled,
       },
     }));
-  };
-
-  const DeviceCard = ({
-    title,
-    icon,
-    iconColor,
-    iconBgColor,
-    cardBgColor,
-    borderColor,
-    deviceKey,
-  }: {
-    title: string;
-    icon: React.ReactNode;
-    iconColor: string;
-    iconBgColor: string;
-    cardBgColor: string;
-    borderColor: string;
-    deviceKey: keyof typeof devices;
-  }) => {
-    const device = devices[deviceKey];
-
-    const handleCardPress = () => {
-      if (deviceKey === "witMotion") {
-        router.push("/wit-motion");
-      }
-
-      if (deviceKey === "raspberryPi") {
-        router.push("/raspberry-pi");
-      }
-
-      if (deviceKey === "bms") {
-        router.push("/bms-screen");
-      }
-    };
-
-    return (
-      <TouchableOpacity onPress={handleCardPress} className="flex-1">
-        <View
-          className={`rounded-3xl p-4 gap-3 border ${
-            device.isEnabled
-              ? `${cardBgColor} ${borderColor}`
-              : "bg-secondary border-border"
-          }`}
-        >
-          <View className="flex-row items-center justify-between">
-            <View
-              style={{
-                backgroundColor: iconBgColor,
-                width: 48,
-                height: 48,
-                borderRadius: 12,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {icon}
-            </View>
-
-            {device.isConnected ? (
-              <Bluetooth color="#00BC7D" size={20} />
-            ) : (
-              <BluetoothOff color="#E7000B" size={20} />
-            )}
-          </View>
-
-          <Text className="text-foreground text-lg font-semibold">{title}</Text>
-
-          <View className="flex-row items-center justify-between">
-            <Text className="text-muted-foreground text-sm">
-              {device.isEnabled ? "On" : "Off"}
-            </Text>
-            <Switch
-              value={device.isEnabled}
-              onValueChange={() => toggleDevice(deviceKey)}
-              trackColor={{ false: "#E5E7EB", true: "#00BC7D" }}
-              thumbColor={device.isEnabled ? "#FFFFFF" : "#FFFFFF"}
-              ios_backgroundColor="#E5E7EB"
-            />
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
   };
 
   return (
@@ -180,20 +90,22 @@ const HomeScreen = () => {
               <DeviceCard
                 title="Mopeka"
                 icon={<Droplet color="#00BC7D" />}
-                iconColor="#00BC7D"
                 iconBgColor="#E0FFF5"
                 cardBgColor="bg-[#E0FFF5]"
                 borderColor="border-green-300"
                 deviceKey="mopeka"
+                device={devices.mopeka}
+                onToggle={() => toggleDevice("mopeka")}
               />
               <DeviceCard
                 title="BMS"
                 icon={<Battery color="#FE9A00" />}
-                iconColor="#FE9A00"
                 iconBgColor="#FFF3E0"
                 cardBgColor="bg-[#FFF3E0]"
                 borderColor="border-orange-300"
                 deviceKey="bms"
+                device={devices.bms}
+                onToggle={() => toggleDevice("bms")}
               />
             </View>
 
@@ -201,20 +113,22 @@ const HomeScreen = () => {
               <DeviceCard
                 title="Raspberry Pi"
                 icon={<Cpu color="#FF2056" />}
-                iconColor="#FF2056"
                 iconBgColor="#FFE0E8"
                 cardBgColor="bg-[#FFE0E8]"
                 borderColor="border-red-300"
                 deviceKey="raspberryPi"
+                device={devices.raspberryPi}
+                onToggle={() => toggleDevice("raspberryPi")}
               />
               <DeviceCard
                 title="Wit Motion"
                 icon={<Compass color="#AD46FF" />}
-                iconColor="#AD46FF"
                 iconBgColor="#F1E0FF"
                 cardBgColor="bg-[#F1E0FF]"
                 borderColor="border-purple-300"
                 deviceKey="witMotion"
+                device={devices.witMotion}
+                onToggle={() => toggleDevice("witMotion")}
               />
             </View>
           </View>

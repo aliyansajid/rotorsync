@@ -11,6 +11,7 @@ import { ChevronLeft, Cpu } from "lucide-react-native";
 import Svg, { Rect, Text as SvgText, G } from "react-native-svg";
 import { useState } from "react";
 import { router } from "expo-router";
+import DataCard from "../components/DataCard";
 
 interface ProbeData {
   name: string;
@@ -279,7 +280,7 @@ const RaspberryPiScreen = () => {
         <View className="m-6 gap-6">
           <View className="bg-secondary rounded-xl p-6">
             <View className="flex-row items-center gap-3">
-              <View className="bg-pink-accent w-12 h-12 rounded-xl items-center justify-center">
+              <View className="bg-pink-accent border border-red-300 w-12 h-12 rounded-xl items-center justify-center">
                 <Cpu color="#FF2056" size={24} />
               </View>
               <Text className="text-foreground text-xl font-semibold">
@@ -300,16 +301,52 @@ const RaspberryPiScreen = () => {
                 CHT Probes
               </Text>
               <View className="flex-row gap-3">
-                <ProbeCard probe={raspberryPiData.probes[0]} />
-                <ProbeCard probe={raspberryPiData.probes[2]} />
+                <DataCard
+                  title={raspberryPiData.probes[0].name}
+                  value={raspberryPiData.probes[0].temperature}
+                  unit="°F"
+                  dotColor="#00BC7D"
+                  precision={0}
+                />
+                <DataCard
+                  title={raspberryPiData.probes[2].name}
+                  value={raspberryPiData.probes[2].temperature}
+                  unit="°F"
+                  dotColor="#00BC7D"
+                  precision={0}
+                />
               </View>
               <View className="flex-row gap-3">
-                <ProbeCard probe={raspberryPiData.probes[4]} />
-                <ProbeCard probe={raspberryPiData.probes[6]} />
+                <DataCard
+                  title={raspberryPiData.probes[4].name}
+                  value={raspberryPiData.probes[4].temperature}
+                  unit="°F"
+                  dotColor="#00BC7D"
+                  precision={0}
+                />
+                <DataCard
+                  title={raspberryPiData.probes[6].name}
+                  value={raspberryPiData.probes[6].temperature}
+                  unit="°F"
+                  dotColor="#00BC7D"
+                  precision={0}
+                />
               </View>
               <View className="flex-row gap-3">
-                <ProbeCard probe={raspberryPiData.probes[8]} />
-                <ProbeCard probe={raspberryPiData.probes[10]} />
+                <DataCard
+                  title={raspberryPiData.probes[8].name}
+                  value={raspberryPiData.probes[8].temperature}
+                  unit="°F"
+                  dotColor="#00BC7D"
+                  precision={0}
+                />
+                <DataCard
+                  title={raspberryPiData.probes[10].name}
+                  value={raspberryPiData.probes[10].temperature}
+                  unit="°F"
+                  dotColor="#00BC7D"
+                  precision={0}
+                />
               </View>
             </View>
 
@@ -318,16 +355,52 @@ const RaspberryPiScreen = () => {
                 EGT Probes
               </Text>
               <View className="flex-row gap-3">
-                <ProbeCard probe={raspberryPiData.probes[1]} />
-                <ProbeCard probe={raspberryPiData.probes[3]} />
+                <DataCard
+                  title={raspberryPiData.probes[1].name}
+                  value={raspberryPiData.probes[1].temperature}
+                  unit="°F"
+                  dotColor="#1447E6"
+                  precision={0}
+                />
+                <DataCard
+                  title={raspberryPiData.probes[3].name}
+                  value={raspberryPiData.probes[3].temperature}
+                  unit="°F"
+                  dotColor="#1447E6"
+                  precision={0}
+                />
               </View>
               <View className="flex-row gap-3">
-                <ProbeCard probe={raspberryPiData.probes[5]} />
-                <ProbeCard probe={raspberryPiData.probes[7]} />
+                <DataCard
+                  title={raspberryPiData.probes[5].name}
+                  value={raspberryPiData.probes[5].temperature}
+                  unit="°F"
+                  dotColor="#1447E6"
+                  precision={0}
+                />
+                <DataCard
+                  title={raspberryPiData.probes[7].name}
+                  value={raspberryPiData.probes[7].temperature}
+                  unit="°F"
+                  dotColor="#1447E6"
+                  precision={0}
+                />
               </View>
               <View className="flex-row gap-3">
-                <ProbeCard probe={raspberryPiData.probes[9]} />
-                <ProbeCard probe={raspberryPiData.probes[11]} />
+                <DataCard
+                  title={raspberryPiData.probes[9].name}
+                  value={raspberryPiData.probes[9].temperature}
+                  unit="°F"
+                  dotColor="#1447E6"
+                  precision={0}
+                />
+                <DataCard
+                  title={raspberryPiData.probes[11].name}
+                  value={raspberryPiData.probes[11].temperature}
+                  unit="°F"
+                  dotColor="#1447E6"
+                  precision={0}
+                />
               </View>
             </View>
           </View>

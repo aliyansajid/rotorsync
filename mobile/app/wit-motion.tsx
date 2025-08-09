@@ -8,6 +8,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft, Compass } from "lucide-react-native";
 import { router } from "expo-router";
+import DataCard from "@/components/DataCard";
 
 interface WitMotionData {
   deviceName: string;
@@ -57,38 +58,6 @@ const WitMotionScreen = () => {
     router.back();
   };
 
-  const DataCard = ({
-    title,
-    value,
-    unit,
-    color,
-  }: {
-    title: string;
-    value: number;
-    unit: string;
-    color: string;
-  }) => (
-    <View className="bg-secondary rounded-xl p-4 flex-1 gap-2">
-      <View className="flex-row items-center gap-2">
-        <View
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: color,
-          }}
-        />
-        <Text className="text-muted-foreground text-sm">{title}</Text>
-      </View>
-      <View className="flex-row items-baseline gap-1">
-        <Text className="text-foreground text-xl font-bold">
-          {value.toFixed(3)}
-        </Text>
-        <Text className="text-muted-foreground text-sm">{unit}</Text>
-      </View>
-    </View>
-  );
-
   return (
     <SafeAreaView className="flex-1 bg-background">
       <StatusBar barStyle="dark-content" />
@@ -98,7 +67,7 @@ const WitMotionScreen = () => {
           onPress={handleBack}
           className="flex-row items-center gap-2"
         >
-          <ChevronLeft color="#737373" size={24} />
+          <ChevronLeft color="#737373" />
           <Text className="text-foreground text-2xl font-medium">
             WitMotion
           </Text>
@@ -120,7 +89,7 @@ const WitMotionScreen = () => {
         <View className="m-6 gap-6">
           <View className="bg-secondary rounded-xl p-6">
             <View className="flex-row items-center gap-3">
-              <View className="bg-purple-accent w-12 h-12 rounded-xl items-center justify-center">
+              <View className="bg-purple-accent border border-purple-300 w-12 h-12 rounded-xl items-center justify-center">
                 <Compass color="#AD46FF" />
               </View>
               <Text className="text-foreground text-xl font-semibold">
@@ -129,7 +98,7 @@ const WitMotionScreen = () => {
             </View>
           </View>
 
-          <View className="gap-3">
+          <View className="gap-4">
             <Text className="text-foreground text-lg font-semibold">
               Accelerometer
             </Text>
@@ -138,13 +107,13 @@ const WitMotionScreen = () => {
                 title="Acc X"
                 value={witMotionData.accX}
                 unit="m/s²"
-                color="#1447E6"
+                dotColor="#1447E6"
               />
               <DataCard
                 title="Acc Y"
                 value={witMotionData.accY}
                 unit="m/s²"
-                color="#1447E6"
+                dotColor="#1447E6"
               />
             </View>
             <View className="flex-row">
@@ -153,14 +122,14 @@ const WitMotionScreen = () => {
                   title="Acc Z"
                   value={witMotionData.accZ}
                   unit="m/s²"
-                  color="#1447E6"
+                  dotColor="#1447E6"
                 />
               </View>
               <View className="flex-1" />
             </View>
           </View>
 
-          <View className="gap-3">
+          <View className="gap-4">
             <Text className="text-foreground text-lg font-semibold">
               Gyroscope
             </Text>
@@ -169,13 +138,13 @@ const WitMotionScreen = () => {
                 title="Gyro X"
                 value={witMotionData.gyroX}
                 unit="rad/s"
-                color="#00bc7d"
+                dotColor="#00bc7d"
               />
               <DataCard
                 title="Gyro Y"
                 value={witMotionData.gyroY}
                 unit="rad/s"
-                color="#00bc7d"
+                dotColor="#00bc7d"
               />
             </View>
             <View className="flex-row">
@@ -184,27 +153,27 @@ const WitMotionScreen = () => {
                   title="Gyro Z"
                   value={witMotionData.gyroZ}
                   unit="rad/s"
-                  color="#00bc7d"
+                  dotColor="#00bc7d"
                 />
               </View>
               <View className="flex-1" />
             </View>
           </View>
 
-          <View className="gap-3">
+          <View className="gap-4">
             <Text className="text-foreground text-lg font-semibold">Angle</Text>
             <View className="flex-row gap-3">
               <DataCard
                 title="Angle X"
                 value={witMotionData.angleX}
                 unit="degrees"
-                color="#FE9A00"
+                dotColor="#FE9A00"
               />
               <DataCard
                 title="Angle Y"
                 value={witMotionData.angleY}
                 unit="degrees"
-                color="#FE9A00"
+                dotColor="#FE9A00"
               />
             </View>
             <View className="flex-row">
@@ -213,14 +182,14 @@ const WitMotionScreen = () => {
                   title="Angle Z"
                   value={witMotionData.angleZ}
                   unit="degrees"
-                  color="#FE9A00"
+                  dotColor="#FE9A00"
                 />
               </View>
               <View className="flex-1" />
             </View>
           </View>
 
-          <View className="gap-3">
+          <View className="gap-4">
             <Text className="text-foreground text-lg font-semibold">
               Magnetometer
             </Text>
@@ -229,13 +198,13 @@ const WitMotionScreen = () => {
                 title="Mag X"
                 value={witMotionData.magX}
                 unit="μT"
-                color="#E7000B"
+                dotColor="#E7000B"
               />
               <DataCard
                 title="Mag Y"
                 value={witMotionData.magY}
                 unit="μT"
-                color="#E7000B"
+                dotColor="#E7000B"
               />
             </View>
             <View className="flex-row">
@@ -244,14 +213,14 @@ const WitMotionScreen = () => {
                   title="Mag Z"
                   value={witMotionData.magZ}
                   unit="μT"
-                  color="#E7000B"
+                  dotColor="#E7000B"
                 />
               </View>
               <View className="flex-1" />
             </View>
           </View>
 
-          <View className="gap-3">
+          <View className="gap-4">
             <Text className="text-foreground text-lg font-semibold">
               Quaternion
             </Text>
@@ -260,13 +229,13 @@ const WitMotionScreen = () => {
                 title="Quat 0"
                 value={witMotionData.quat0}
                 unit="unit"
-                color="#AD46FF"
+                dotColor="#AD46FF"
               />
               <DataCard
                 title="Quat 1"
                 value={witMotionData.quat1}
                 unit="unit"
-                color="#AD46FF"
+                dotColor="#AD46FF"
               />
             </View>
             <View className="flex-row gap-3">
@@ -274,13 +243,13 @@ const WitMotionScreen = () => {
                 title="Quat 2"
                 value={witMotionData.quat2}
                 unit="unit"
-                color="#AD46FF"
+                dotColor="#AD46FF"
               />
               <DataCard
                 title="Quat 3"
                 value={witMotionData.quat3}
                 unit="unit"
-                color="#AD46FF"
+                dotColor="#AD46FF"
               />
             </View>
           </View>

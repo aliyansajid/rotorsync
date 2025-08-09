@@ -4,7 +4,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -24,6 +23,8 @@ import {
 } from "lucide-react-native";
 import Svg, { Path } from "react-native-svg";
 import { router } from "expo-router";
+import DataCard from "@/components/DataCard";
+import Badge from "@/components/Badge";
 
 interface BMSData {
   deviceName: string;
@@ -45,9 +46,6 @@ interface BMSData {
 }
 
 const BMSScreen = () => {
-  const screenWidth = Dimensions.get("window").width;
-
-  // Sample BMS data
   const bmsData: BMSData = {
     deviceName: "BMS Controller Pro",
     isConnected: true,
@@ -87,8 +85,8 @@ const BMSScreen = () => {
     };
 
     return (
-      <View className="bg-secondary rounded-xl p-6 items-center">
-        <Text className="text-foreground text-xl font-semibold mb-4">
+      <View className="bg-secondary rounded-xl p-6 items-center gap-3">
+        <Text className="text-foreground text-xl font-semibold">
           State of Charge
         </Text>
 
@@ -129,48 +127,25 @@ const BMSScreen = () => {
           </View>
         </View>
 
-        <View className="flex-row gap-4 mt-4">
+        <View className="flex-row gap-3">
           {bmsData.isCharging && (
-            <View className="flex-row items-center gap-1 bg-primary-accent border border-green-300 px-3 py-1 rounded-full">
-              <Zap color="#00bc7d" size={16} />
-              <Text className="text-primary text-sm font-medium">Charging</Text>
-            </View>
+            <Badge
+              icon={<Zap color="#00bc7d" size={16} />}
+              text="Charging"
+              variant="primary"
+            />
           )}
           {bmsData.isBalancing && (
-            <View className="flex-row items-center gap-1 bg-blue-accent border border-blue-300 px-3 py-1 rounded-full">
-              <Activity color="#1447E6" size={16} />
-              <Text className="text-blue text-sm font-medium">Balancing</Text>
-            </View>
+            <Badge
+              icon={<Activity color="#1447E6" size={16} />}
+              text="Balancing"
+              variant="blue"
+            />
           )}
         </View>
       </View>
     );
   };
-
-  const DataCard = ({
-    icon,
-    title,
-    value,
-    unit,
-  }: {
-    icon: React.ReactNode;
-    title: string;
-    value: string | number;
-    unit?: string;
-  }) => (
-    <View className="bg-secondary rounded-xl p-4 flex-1 gap-3">
-      <View className="flex-row items-center gap-2">
-        <View className="items-center justify-center">{icon}</View>
-        <Text className="text-muted-foreground text-sm font-medium flex-1">
-          {title}
-        </Text>
-      </View>
-      <View className="flex-row items-baseline gap-1">
-        <Text className="text-foreground text-xl font-bold">{value}</Text>
-        {unit && <Text className="text-muted-foreground text-sm">{unit}</Text>}
-      </View>
-    </View>
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -201,7 +176,7 @@ const BMSScreen = () => {
         <View className="m-6 gap-6">
           <View className="bg-secondary rounded-xl p-6">
             <View className="flex-row items-center gap-3">
-              <View className="bg-orange-accent w-12 h-12 rounded-xl items-center justify-center">
+              <View className="bg-orange-accent border border-orange-300 w-12 h-12 rounded-xl items-center justify-center">
                 <Battery color="#FE9A00" />
               </View>
               <Text className="text-foreground text-xl font-semibold">
@@ -223,12 +198,14 @@ const BMSScreen = () => {
                 title="Total Voltage"
                 value={bmsData.totalVoltage}
                 unit="V"
+                precision={1}
               />
               <DataCard
                 icon={<Activity color="#00bc7d" size={20} />}
                 title="Current"
                 value={bmsData.current}
                 unit="A"
+                precision={1}
               />
             </View>
 
@@ -238,12 +215,14 @@ const BMSScreen = () => {
                 title="Power"
                 value={bmsData.power}
                 unit="W"
+                precision={1}
               />
               <DataCard
                 icon={<BatteryMedium color="#00bc7d" size={20} />}
                 title="Remaining"
                 value={bmsData.remainingCapacity}
                 unit="Ah"
+                precision={1}
               />
             </View>
 
@@ -267,6 +246,7 @@ const BMSScreen = () => {
                 title="Delta Cell V"
                 value={bmsData.deltaCellVoltages}
                 unit="V"
+                precision={1}
               />
               <DataCard
                 icon={<Settings color="#00bc7d" size={20} />}
@@ -275,7 +255,6 @@ const BMSScreen = () => {
               />
             </View>
 
-            {/* Row 5 */}
             <View className="flex-row gap-3">
               <DataCard
                 icon={
@@ -343,12 +322,14 @@ const BMSScreen = () => {
                 title="Temp 1"
                 value={bmsData.temperatures.temp1}
                 unit="°C"
+                precision={1}
               />
               <DataCard
                 icon={<Thermometer color="#00bc7d" size={20} />}
                 title="Temp 2"
                 value={bmsData.temperatures.temp2}
                 unit="°C"
+                precision={1}
               />
             </View>
           </View>

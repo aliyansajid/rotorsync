@@ -7,26 +7,6 @@ module.exports = {
       colors: {
         background: "#ffffff",
         foreground: "#0a0a0a",
-        blue: {
-          DEFAULT: "#1447E6",
-          accent: "#E3E9FD",
-        },
-        red: {
-          DEFAULT: "#E7000B",
-          accent: "#FFE0E2",
-        },
-        pink: {
-          DEFAULT: "#FF2056",
-          accent: "#FFE0E8",
-        },
-        purple: {
-          DEFAULT: "#AD46FF",
-          accent: "#F1E0FF",
-        },
-        orange: {
-          DEFAULT: "#FE9A00",
-          accent: "#FFF3E0",
-        },
         card: {
           DEFAULT: "#ffffff",
           foreground: "#0a0a0a",
@@ -51,10 +31,27 @@ module.exports = {
         destructive: {
           DEFAULT: "#e7000b",
           foreground: "#ffffff",
+          accent: "#FFE0E2",
         },
         border: "#e5e5e5",
         input: "#e5e5e5",
         ring: "#00bc7d",
+        blue: {
+          DEFAULT: "#1447E6",
+          accent: "#E3E9FD",
+        },
+        pink: {
+          DEFAULT: "#FF2056",
+          accent: "#FFE0E8",
+        },
+        purple: {
+          DEFAULT: "#AD46FF",
+          accent: "#F1E0FF",
+        },
+        orange: {
+          DEFAULT: "#FE9A00",
+          accent: "#FFF3E0",
+        },
       },
     },
   },

@@ -1,5 +1,5 @@
 import CustomButton from "@/components/CustomButton";
-import { ChevronRight, Hash, Wifi } from "lucide-react-native";
+import { Bell, ChevronRight, Hash, Wifi } from "lucide-react-native";
 import {
   StatusBar,
   Text,
@@ -47,7 +47,7 @@ const SettingsScreen = () => {
                 <Text className="text-primary-foreground text-2xl font-semibold">
                   Aliyan Sajid
                 </Text>
-                <Text className="text-primary-foreground/80 text-base">
+                <Text className="text-muted text-base">
                   aliyansajid@gmail.com
                 </Text>
               </View>
@@ -65,13 +65,13 @@ const SettingsScreen = () => {
                 className="p-4 flex-row items-center gap-3 border-b border-border"
                 onPress={handleConnectionTest}
               >
-                <View className="bg-[#E0FFF5] flex-row items-center justify-center h-12 w-12 rounded-full">
+                <View className="bg-primary-accent flex-row items-center justify-center h-12 w-12 rounded-xl">
                   <Wifi color={"#00bc7d"} />
                 </View>
 
                 <View className="flex-1">
                   <Text className="text-foreground text-lg font-medium">
-                    Connection Test
+                    Connection test
                   </Text>
                 </View>
                 <ChevronRight color={"#737373"} size={20} />
@@ -81,13 +81,26 @@ const SettingsScreen = () => {
                 className="p-4 flex-row items-center gap-3"
                 onPress={handleSerialNumber}
               >
-                <View className="bg-[#E0FFF5] flex-row items-center justify-center h-12 w-12 rounded-full">
+                <View className="bg-primary-accent flex-row items-center justify-center h-12 w-12 rounded-xl">
                   <Hash color={"#00bc7d"} />
                 </View>
 
                 <View className="flex-1">
                   <Text className="text-foreground text-lg font-medium">
-                    Serial Number
+                    Serial number
+                  </Text>
+                </View>
+                <ChevronRight color={"#737373"} size={20} />
+              </TouchableOpacity>
+
+              <TouchableOpacity className="p-4 flex-row items-center gap-3">
+                <View className="bg-primary-accent flex-row items-center justify-center h-12 w-12 rounded-xl">
+                  <Bell color={"#00bc7d"} />
+                </View>
+
+                <View className="flex-1">
+                  <Text className="text-foreground text-lg font-medium">
+                    Push notification
                   </Text>
                 </View>
                 <ChevronRight color={"#737373"} size={20} />

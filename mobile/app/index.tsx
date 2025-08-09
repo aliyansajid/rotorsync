@@ -13,7 +13,7 @@ const OnboardingScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <StatusBar barStyle="dark-content" />
-      <View className="flex-1 mx-5 mb-8 justify-between">
+      <View className="flex-1 m-6 justify-between">
         <View className="flex-1 justify-center">
           <Image
             source={require("../assets/images/banner.webp")}
@@ -28,9 +28,8 @@ const OnboardingScreen = () => {
             maximize your fleet's performance.
           </Text>
         </View>
-        <View className="gap-4">
+        <View className="gap-3">
           <CustomButton title="Get Started" onPress={onGetStarted} />
-
           <View className="flex-row items-center justify-center">
             <Text className="text-muted-foreground text-base">
               Already have an account?&nbsp;

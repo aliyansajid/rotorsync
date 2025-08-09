@@ -18,3 +18,5 @@ const MapScreen = () => {
     </SafeAreaView>
   );
 };
+
+export default MapScreen;

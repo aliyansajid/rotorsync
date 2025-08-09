@@ -8,13 +8,12 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Link, useRouter } from "expo-router";
+import { Link } from "expo-router";
 import { UserPlus } from "lucide-react-native";
 import CustomInput from "@/components/CustomInput";
 import CustomButton from "@/components/CustomButton";
 
 const SignUpScreen = () => {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,7 +46,6 @@ const SignUpScreen = () => {
           <View className="w-14 h-14 bg-white/20 rounded-xl items-center justify-center mb-6">
             <UserPlus size={28} color="white" />
           </View>
-
           <Text className="text-white text-3xl font-semibold text-center mb-2">
             Create Account
           </Text>
@@ -61,34 +59,32 @@ const SignUpScreen = () => {
         className="flex-1 bg-background"
         showsVerticalScrollIndicator={false}
       >
-        <View className="mx-5 mt-8 gap-6">
-          <View className="gap-4">
-            <CustomInput
-              label="Name"
-              placeholder="John Doe"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-            />
+        <View className="m-6 gap-6">
+          <CustomInput
+            label="Name"
+            placeholder="John Doe"
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="words"
+          />
 
-            <CustomInput
-              label="Email"
-              placeholder="m@example.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+          <CustomInput
+            label="Email"
+            placeholder="m@example.com"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-            <CustomInput
-              label="Password"
-              placeholder="********"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-            />
-          </View>
+          <CustomInput
+            label="Password"
+            placeholder="********"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+          />
 
           <CustomButton title="Sign Up" onPress={onSignUp} />
 
