@@ -15,6 +15,7 @@ import Svg, {
   Circle,
 } from "react-native-svg";
 import { useState } from "react";
+import { AlertTriangle, Zap } from "lucide-react-native";
 
 interface MopekaData {
   sensorName: string;
@@ -271,126 +272,6 @@ const MonitoringScreen = () => {
     );
   };
 
-  const TrailerCard = ({ data }: { data: TrailerData }) => {
-    const isUnreliableMopeka = data.mopeka.readingQuality <= 67;
-
-    return (
-      <View className="bg-secondary rounded-3xl p-6 gap-3">
-        <Text className="text-foreground text-xl font-semibold mb-3">
-          {data.name}
-        </Text>
-
-        <View className="flex-row items-center gap-3 mb-3">
-          <Text className="text-foreground text-xl font-semibold">Mopeka</Text>
-          {isUnreliableMopeka && (
-            <View className="bg-[#FFE0E2] border border-red-300 rounded-full px-3 py-1">
-              <Text className="text-destructive text-sm font-medium">
-                Unreliable reading
-              </Text>
-            </View>
-          )}
-        </View>
-
-        <View className="flex-row items-center justify-between">
-          <Text className="text-foreground text-base font-medium">
-            Senor name
-          </Text>
-          <Text className="text-muted-foreground text-base">
-            {data.mopeka.sensorName}
-          </Text>
-        </View>
-
-        <View className="border-b border-border" />
-
-        <View className="flex-row items-center justify-between">
-          <Text className="text-foreground text-base font-medium">
-            Senor ID
-          </Text>
-          <Text className="text-muted-foreground text-base">
-            {data.mopeka.sensorId}
-          </Text>
-        </View>
-
-        <View className="border-b border-border" />
-
-        <View className="flex-row items-center justify-between">
-          <Text className="text-foreground text-base font-medium">Gallons</Text>
-          <Text
-            className={`text-xl font-bold ${isUnreliableMopeka ? "text-destructive" : "text-foreground"}`}
-          >
-            {data.mopeka.gallons.toFixed(1)}
-          </Text>
-        </View>
-
-        <View className="border-b border-border" />
-
-        <View className="flex-row items-center justify-between">
-          <Text className="text-foreground text-base font-medium">
-            Reading quality
-          </Text>
-          <Text
-            className={`text-xl font-bold ${isUnreliableMopeka ? "text-destructive" : "text-foreground"}`}
-          >
-            {data.mopeka.readingQuality.toFixed(1)}%
-          </Text>
-        </View>
-
-        <View className="border-b border-border" />
-
-        <View className="flex-row items-center justify-between">
-          <Text className="text-foreground text-base font-medium">
-            Last updated
-          </Text>
-          <Text className="text-muted-foreground text-base">
-            {data.mopeka.lastUpdated}
-          </Text>
-        </View>
-
-        <View className="border-b border-border my-3" />
-
-        <View className="flex-row items-center gap-3 mb-3">
-          <Text className="text-foreground text-xl font-semibold">
-            Battery Management System
-          </Text>
-          {data.bms.isCharging && (
-            <View className="bg-[#E0FFF5] border border-green-300 rounded-full px-3 py-1">
-              <Text className="text-primary text-sm font-medium">Charging</Text>
-            </View>
-          )}
-        </View>
-
-        <View className="flex-row items-center justify-between">
-          <Text className="text-foreground text-base font-medium">Name</Text>
-          <Text className="text-muted-foreground text-base">
-            {data.bms.batteryName}
-          </Text>
-        </View>
-
-        <View className="border-b border-border" />
-
-        <View className="flex-row items-center justify-between">
-          <Text className="text-foreground text-base font-medium">
-            State of charge
-          </Text>
-          <Text className="text-foreground text-xl font-bold">
-            {data.bms.stateOfCharge}%
-          </Text>
-        </View>
-
-        <View className="border-b border-border" />
-
-        <View className="flex-row items-center justify-between">
-          <Text className="text-foreground text-base font-medium">
-            Total Voltage
-          </Text>
-          <Text className="text-muted-foreground text-base">
-            {data.bms.totalVoltage}
-          </Text>
-        </View>
-      </View>
-    );
-  };
-
   const mopekaData: MopekaData = {
     sensorName: "Tank Sensor A",
     sensorId: "52:7C:6B",
@@ -455,7 +336,8 @@ const MonitoringScreen = () => {
         <View className="flex-row items-center gap-3 mb-3">
           <Text className="text-foreground text-xl font-semibold">Mopeka</Text>
           {isUnreliable && (
-            <View className="bg-[#FFE0E2] border border-red-300 rounded-full px-3 py-1">
+            <View className="bg-[#FFE0E2] flex-row items-center gap-1 border border-red-300 rounded-full px-3 py-1">
+              <AlertTriangle color={"#e7000b"} size={16} />
               <Text className="text-destructive text-sm font-medium">
                 Unreliable reading
               </Text>
@@ -536,7 +418,8 @@ const MonitoringScreen = () => {
           Battery Management System
         </Text>
         {data.isCharging && (
-          <View className="bg-[#E0FFF5] border border-green-300 rounded-full px-3 py-1">
+          <View className="bg-primary-accent flex-row items-center gap-1 border border-green-300 rounded-full px-3 py-1">
+            <Zap color={"#00bc7d"} size={16} />
             <Text className="text-primary text-sm font-medium">Charging</Text>
           </View>
         )}
@@ -573,6 +456,128 @@ const MonitoringScreen = () => {
     </View>
   );
 
+  const TrailerCard = ({ data }: { data: TrailerData }) => {
+    const isUnreliableMopeka = data.mopeka.readingQuality <= 67;
+
+    return (
+      <View className="bg-secondary rounded-3xl p-6 gap-3">
+        <Text className="text-foreground text-xl font-semibold mb-3">
+          {data.name}
+        </Text>
+
+        <View className="flex-row items-center gap-3 mb-3">
+          <Text className="text-foreground text-xl font-semibold">Mopeka</Text>
+          {isUnreliableMopeka && (
+            <View className="bg-[#FFE0E2] flex-row gap-1 items-center border border-red-300 rounded-full px-3 py-1">
+              <AlertTriangle color={"#e7000b"} size={16} />
+              <Text className="text-destructive text-sm font-medium">
+                Unreliable reading
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View className="flex-row items-center justify-between">
+          <Text className="text-foreground text-base font-medium">
+            Senor name
+          </Text>
+          <Text className="text-muted-foreground text-base">
+            {data.mopeka.sensorName}
+          </Text>
+        </View>
+
+        <View className="border-b border-border" />
+
+        <View className="flex-row items-center justify-between">
+          <Text className="text-foreground text-base font-medium">
+            Senor ID
+          </Text>
+          <Text className="text-muted-foreground text-base">
+            {data.mopeka.sensorId}
+          </Text>
+        </View>
+
+        <View className="border-b border-border" />
+
+        <View className="flex-row items-center justify-between">
+          <Text className="text-foreground text-base font-medium">Gallons</Text>
+          <Text
+            className={`text-xl font-bold ${isUnreliableMopeka ? "text-destructive" : "text-foreground"}`}
+          >
+            {data.mopeka.gallons.toFixed(1)}
+          </Text>
+        </View>
+
+        <View className="border-b border-border" />
+
+        <View className="flex-row items-center justify-between">
+          <Text className="text-foreground text-base font-medium">
+            Reading quality
+          </Text>
+          <Text
+            className={`text-xl font-bold ${isUnreliableMopeka ? "text-destructive" : "text-foreground"}`}
+          >
+            {data.mopeka.readingQuality.toFixed(1)}%
+          </Text>
+        </View>
+
+        <View className="border-b border-border" />
+
+        <View className="flex-row items-center justify-between">
+          <Text className="text-foreground text-base font-medium">
+            Last updated
+          </Text>
+          <Text className="text-muted-foreground text-base">
+            {data.mopeka.lastUpdated}
+          </Text>
+        </View>
+
+        <View className="border-b border-border my-3" />
+
+        <View className="flex-row items-center gap-3 mb-3">
+          <Text className="text-foreground text-xl font-semibold">
+            Battery Management System
+          </Text>
+          {data.bms.isCharging && (
+            <View className="bg-[#E0FFF5] flex-row items-center gap-1 border border-green-300 rounded-full px-3 py-1">
+              <Zap color={"#00bc7d"} size={16} />
+              <Text className="text-primary text-sm font-medium">Charging</Text>
+            </View>
+          )}
+        </View>
+
+        <View className="flex-row items-center justify-between">
+          <Text className="text-foreground text-base font-medium">Name</Text>
+          <Text className="text-muted-foreground text-base">
+            {data.bms.batteryName}
+          </Text>
+        </View>
+
+        <View className="border-b border-border" />
+
+        <View className="flex-row items-center justify-between">
+          <Text className="text-foreground text-base font-medium">
+            State of charge
+          </Text>
+          <Text className="text-foreground text-xl font-bold">
+            {data.bms.stateOfCharge}%
+          </Text>
+        </View>
+
+        <View className="border-b border-border" />
+
+        <View className="flex-row items-center justify-between">
+          <Text className="text-foreground text-base font-medium">
+            Total Voltage
+          </Text>
+          <Text className="text-muted-foreground text-base">
+            {data.bms.totalVoltage}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       <StatusBar barStyle="dark-content" />
@@ -593,8 +598,11 @@ const MonitoringScreen = () => {
               View Bluetooth Mopeka and BMS data
             </Text>
           </View>
+
           <MopekaCard data={mopekaData} />
+
           <BMSCard data={bmsData} />
+
           <View className="gap-2">
             <Text className="text-foreground text-xl font-semibold">
               Trailers

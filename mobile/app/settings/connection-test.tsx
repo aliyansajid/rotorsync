@@ -151,10 +151,10 @@ const ConnectionTestScreen = () => {
 
           <View className="flex-row items-center gap-2">
             <View
-              className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
+              className={`w-2 h-2 rounded-full ${isConnected ? "bg-primary" : "bg-destructive"}`}
             />
             <Text
-              className={`text-sm font-medium ${isConnected ? "text-green-600" : "text-red-600"}`}
+              className={`text-sm font-medium ${isConnected ? "text-primary" : "text-destructive"}`}
             >
               {isConnected ? "Connected" : "Disconnected"}
             </Text>
@@ -236,8 +236,8 @@ const ConnectionTestScreen = () => {
                         <View
                           className={`w-2 h-2 rounded-full ${
                             message.type === "published"
-                              ? "bg-blue-500"
-                              : "bg-green-500"
+                              ? "bg-[#1447E6]"
+                              : "bg-primary"
                           }`}
                         />
                         <Text className="text-foreground font-medium">

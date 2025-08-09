@@ -21,7 +21,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.aliyan_sajid.rotorsync"
     },
     "web": {
       "bundler": "metro",
@@ -39,13 +40,29 @@
           "backgroundColor": "#ffffff",
           "dark": {
             "image": "./assets/images/splash-icon-light.png",
-            "backgroundColor": "000000"
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
           }
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "814566ff-912b-45f7-b062-d0581096d302"
+      }
     }
   }
 }
