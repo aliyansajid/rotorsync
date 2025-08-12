@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.aliyan_sajid.rotorsync"
+      "package": "com.rotorsync"
     },
     "web": {
       "bundler": "metro",
@@ -43,16 +43,6 @@
             "backgroundColor": "#000000"
           }
         }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "compileSdkVersion": 35,
-            "targetSdkVersion": 35,
-            "buildToolsVersion": "35.0.0"
-          }
-        }
       ]
     ],
     "experiments": {
@@ -61,8 +51,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "814566ff-912b-45f7-b062-d0581096d302"
+        "projectId": "8ceedcb1-54c9-4058-9c0a-11dc0636d525"
       }
-    }
+    },
+    "owner": "aliyan_sajid"
   }
 }
