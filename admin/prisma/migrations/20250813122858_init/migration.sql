@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "public"."UserRole" AS ENUM ('ADMIN', 'PILOT', 'CREW');
+
 -- CreateTable
 CREATE TABLE "public"."users" (
     "id" TEXT NOT NULL,
@@ -5,6 +8,7 @@ CREATE TABLE "public"."users" (
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "image" TEXT,
+    "role" "public"."UserRole" NOT NULL DEFAULT 'CREW',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -101,6 +105,18 @@ CREATE TABLE "public"."mqtt_config" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "mqtt_config_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."verification_tokens" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "verification_tokens_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -205,6 +221,15 @@ CREATE TABLE "public"."mopeka_data" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "verification_tokens_token_key" ON "public"."verification_tokens"("token");
+
+-- CreateIndex
+CREATE INDEX "verification_tokens_email_idx" ON "public"."verification_tokens"("email");
+
+-- CreateIndex
+CREATE INDEX "verification_tokens_token_idx" ON "public"."verification_tokens"("token");
 
 -- AddForeignKey
 ALTER TABLE "public"."mopeka_sensors" ADD CONSTRAINT "mopeka_sensors_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
