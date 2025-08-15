@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import bcrypt from "bcryptjs";
 import { mqttConfigSchema } from "@/schema";
 import prisma from "@/lib/prisma";
 
@@ -11,7 +10,7 @@ export async function saveMqttConfiguration(data: any) {
     const existingConfig = await prisma.mqttConfig.findFirst();
     const isExisting = !!existingConfig;
 
-    // Validate with appropriate schema
+    // Validate with schema
     const validatedData = mqttConfigSchema(isExisting).parse(data);
 
     if (isExisting) {
@@ -26,7 +25,7 @@ export async function saveMqttConfiguration(data: any) {
 
       // Only update password if provided
       if (validatedData.password && validatedData.password.trim()) {
-        updateData.password = await bcrypt.hash(validatedData.password, 12);
+        updateData.password = validatedData.password;
       }
 
       await prisma.mqttConfig.update({
@@ -37,9 +36,7 @@ export async function saveMqttConfiguration(data: any) {
       revalidatePath("/mqtt-config");
       return { success: true, message: "Configuration updated successfully" };
     } else {
-      // Create new - password is required here
-      const hashedPassword = await bcrypt.hash(validatedData.password!, 12);
-
+      // Create new
       await prisma.mqttConfig.create({
         data: {
           host: validatedData.host,
@@ -47,7 +44,7 @@ export async function saveMqttConfiguration(data: any) {
           basePath: validatedData.basePath,
           protocol: validatedData.protocol,
           username: validatedData.username,
-          password: hashedPassword,
+          password: validatedData.password as string,
         },
       });
 
@@ -73,14 +70,16 @@ export async function getMqttConfiguration() {
         basePath: true,
         protocol: true,
         username: true,
-        createdAt: true,
-        updatedAt: true,
+        password: true,
       },
     });
 
     return { success: true, data: config };
   } catch (error) {
     console.error("Error fetching MQTT configuration:", error);
-    return { success: false, error: "Failed to fetch configuration." };
+    return {
+      success: false,
+      error: "Failed to fetch configuration. Please try again.",
+    };
   }
 }

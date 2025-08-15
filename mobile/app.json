@@ -22,7 +22,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.rotorsync"
+      "package": "com.rotorsync",
+      "permissions": ["android.permission.INTERNET"]
     },
     "web": {
       "bundler": "metro",

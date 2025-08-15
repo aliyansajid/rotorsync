@@ -29,7 +29,7 @@ const MqttConfigurationForm = () => {
     defaultValues: {
       host: "",
       port: 1883,
-      basePath: "/mqtt",
+      basePath: "mqtt",
       protocol: "websocket" as const,
       username: "",
       password: "",
@@ -51,7 +51,7 @@ const MqttConfigurationForm = () => {
             basePath: result.data.basePath,
             protocol: result.data.protocol as "websocket" | "tls",
             username: result.data.username,
-            password: "",
+            password: result.data.password,
           });
         }
       } catch (error) {
@@ -117,7 +117,7 @@ const MqttConfigurationForm = () => {
               inputType="text"
               name="host"
               label="Host"
-              placeholder="broker.hivemq.com"
+              placeholder="e.g., broker.hivemq.com"
             />
 
             <CustomFormField
@@ -126,7 +126,7 @@ const MqttConfigurationForm = () => {
               inputType="number"
               name="port"
               label="Port"
-              placeholder="1883"
+              placeholder="e.g., 1883"
             />
 
             <CustomFormField
@@ -135,7 +135,7 @@ const MqttConfigurationForm = () => {
               inputType="text"
               name="basePath"
               label="Base Path"
-              placeholder="/mqtt"
+              placeholder="e.g., mqtt"
             />
 
             <CustomFormField
@@ -156,7 +156,7 @@ const MqttConfigurationForm = () => {
               inputType="text"
               name="username"
               label="Username"
-              placeholder="rotorsync"
+              placeholder="e.g., rotorsync"
             />
 
             <CustomFormField

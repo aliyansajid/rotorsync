@@ -28,7 +28,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Invalid credentials");
         }
 
-        return user;
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.fullName,
+          role: user.role,
+          image: user.image,
+        };
       },
     }),
   ],
@@ -44,5 +50,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60,
+  },
+
+  callbacks: {
+    jwt: async ({ token, user }) => {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.name = user.name;
+      }
+      return token;
+    },
+    session: async ({ session, token }) => {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.name = token.name as string;
+      }
+      return session;
+    },
   },
 });

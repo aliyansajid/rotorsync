@@ -1,4 +1,3 @@
-// Updated schema.ts - Add this function
 import z from "zod";
 
 export const mqttConfigSchema = (isExisting = false) =>
@@ -6,7 +5,7 @@ export const mqttConfigSchema = (isExisting = false) =>
     host: z
       .string()
       .min(1, "Host is required")
-      .max(255, "Host is too long")
+      .max(255, "Host must not exceed 255 characters")
       .refine(
         (val) => {
           const domainRegex =
@@ -26,14 +25,13 @@ export const mqttConfigSchema = (isExisting = false) =>
     basePath: z
       .string()
       .min(1, "Base path is required")
-      .max(100, "Base path is too long")
+      .max(50, "Base path must not exceed 50 characters")
       .transform((val) => {
-        const cleaned = val.replace(/\/+$/, "");
-        return cleaned.startsWith("/") ? cleaned : `/${cleaned}`;
+        const cleaned = val.replace(/^\/+|\/+$/g, "").toLowerCase();
+        return cleaned;
       })
-      .refine((val) => /^\/[a-zA-Z0-9/_-]*$/.test(val), {
-        message:
-          "Base path must contain only letters, numbers, hyphens, underscores, and forward slashes",
+      .refine((val) => /^[a-z][a-z]*$/.test(val), {
+        message: "Base path must contain only lowercase letters",
       }),
 
     protocol: z.enum(["websocket", "tls"]),
@@ -41,16 +39,32 @@ export const mqttConfigSchema = (isExisting = false) =>
     username: z
       .string()
       .min(3, "Username must be at least 3 characters")
-      .max(50, "Username must not exceed 50 characters")
-      .regex(
-        /^[a-zA-Z0-9._-]+$/,
-        "Username can only contain letters, numbers, dots, hyphens, and underscores"
-      ),
+      .max(50, "Username must not exceed 50 characters"),
 
     password: isExisting
       ? z.string().optional()
-      : z
-          .string()
-          .min(8, "Password must be at least 8 characters")
-          .max(100, "Password must not exceed 100 characters"),
+      : z.string().min(8, "Password must be at least 8 characters"),
   });
+
+export const serialNumberSchema = z.object({
+  assetType: z.enum(["HELICOPTER", "TRAILER"], {
+    error: "Please select an asset type",
+  }),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .regex(/^[A-Za-z0-9]+$/, {
+      message: "Name must contain only letters and numbers",
+    })
+    .max(50, "Name must be less than 50 characters"),
+  serialNumber: z
+    .string()
+    .min(1, "Serial number is required")
+    .regex(/^[A-Za-z0-9]+$/, {
+      message: "Serial number must contain only letters and numbers",
+    })
+    .max(50, "Serial number must be less than 50 characters")
+    .toUpperCase(),
+});
+
+export type SerialNumberFormData = z.infer<typeof serialNumberSchema>;

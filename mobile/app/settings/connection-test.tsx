@@ -6,13 +6,15 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft, Radio } from "lucide-react-native";
 import CustomButton from "@/components/CustomButton";
 import CustomInput from "@/components/CustomInput";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { router } from "expo-router";
+import { useMqtt } from "@/hooks/useMqtt";
 
 interface ConnectionData {
   topic: string;
@@ -33,33 +35,36 @@ const ConnectionTestScreen = () => {
     message: "",
   });
 
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
-  const [messages, setMessages] = useState<MqttMessage[]>([
-    {
-      id: "1",
-      topic: "sensors/temperature",
-      message:
-        '{"temperature": 25.6, "humidity": 60.2, "timestamp": "2024-08-07T10:30:00Z"}',
-      timestamp: "10:30 AM",
-      type: "received",
-    },
-    {
-      id: "2",
-      topic: "devices/control",
-      message: '{"device_id": "pump_01", "action": "start", "duration": 300}',
-      timestamp: "10:25 AM",
-      type: "published",
-    },
-    {
-      id: "3",
-      topic: "alerts/system",
-      message:
-        '{"level": "warning", "message": "Low water level detected", "location": "tank_2"}',
-      timestamp: "10:20 AM",
-      type: "received",
-    },
-  ]);
+  const [subscribedTopics, setSubscribedTopics] = useState<string[]>([]);
+  const [messages, setMessages] = useState<MqttMessage[]>([]);
+
+  const {
+    isConnected: mqttConnected,
+    isConnecting: mqttConnecting,
+    subscribe,
+    onMessage,
+    publish,
+  } = useMqtt();
+
+  // Set up MQTT message handling
+  useEffect(() => {
+    onMessage((topic, message) => {
+      console.log(`Received message on topic ${topic}: ${message.toString()}`);
+
+      const newMessage: MqttMessage = {
+        id: Date.now().toString(),
+        topic,
+        message: message.toString(),
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        type: "received",
+      };
+
+      setMessages((prev) => [newMessage, ...prev]);
+    });
+  }, [onMessage]);
 
   const handleBack = (): void => {
     router.back();
@@ -67,44 +72,58 @@ const ConnectionTestScreen = () => {
 
   const handleSubscribe = (): void => {
     if (!connectionData.topic.trim()) {
-      console.log("Please enter a topic");
+      Alert.alert("Error", "Please enter a topic to subscribe to");
       return;
     }
 
-    setIsSubscribed(true);
-    setIsConnected(true);
-    console.log("Subscribed to topic:", connectionData.topic);
+    if (!mqttConnected) {
+      Alert.alert(
+        "Error",
+        "MQTT is not connected. Please enable MQTT from the home screen first."
+      );
+      return;
+    }
 
-    // Simulate receiving a message after subscribing
-    setTimeout(() => {
-      const newMessage: MqttMessage = {
-        id: Date.now().toString(),
-        topic: connectionData.topic,
-        message:
-          '{"status": "subscribed", "topic": "' + connectionData.topic + '"}',
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        type: "received",
-      };
-      setMessages((prev) => [newMessage, ...prev]);
-    }, 1000);
+    if (subscribedTopics.includes(connectionData.topic)) {
+      Alert.alert("Error", "Already subscribed to this topic");
+      return;
+    }
+
+    subscribe(connectionData.topic);
+    setSubscribedTopics((prev) => [...prev, connectionData.topic]);
+
+    // Add subscription confirmation message
+    const subscriptionMessage: MqttMessage = {
+      id: Date.now().toString(),
+      topic: connectionData.topic,
+      message: `Subscribed to topic: ${connectionData.topic}`,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      type: "received",
+    };
+    setMessages((prev) => [subscriptionMessage, ...prev]);
+
+    // Clear topic input after subscribing
+    setConnectionData((prev) => ({ ...prev, topic: "" }));
   };
 
   const handlePublish = (): void => {
     if (!connectionData.topic.trim() || !connectionData.message.trim()) {
-      console.log("Please enter both topic and message");
+      Alert.alert("Error", "Please enter both topic and message");
       return;
     }
 
-    setIsConnected(true);
-    console.log(
-      "Publishing to topic:",
-      connectionData.topic,
-      "Message:",
-      connectionData.message
-    );
+    if (!mqttConnected) {
+      Alert.alert(
+        "Error",
+        "MQTT is not connected. Please enable MQTT from the home screen first."
+      );
+      return;
+    }
+
+    publish(connectionData.topic, connectionData.message);
 
     // Add published message to the list
     const newMessage: MqttMessage = {
@@ -119,6 +138,9 @@ const ConnectionTestScreen = () => {
     };
 
     setMessages((prev) => [newMessage, ...prev]);
+
+    // Clear inputs after publishing
+    setConnectionData({ topic: "", message: "" });
   };
 
   const formatJsonMessage = (message: string): string => {
@@ -128,6 +150,24 @@ const ConnectionTestScreen = () => {
     } catch {
       return message;
     }
+  };
+
+  const getConnectionStatus = () => {
+    if (mqttConnecting) return "Connecting...";
+    if (mqttConnected) return "Connected";
+    return "Disconnected";
+  };
+
+  const getConnectionColor = () => {
+    if (mqttConnecting) return "text-orange";
+    if (mqttConnected) return "text-primary";
+    return "text-destructive";
+  };
+
+  const getConnectionDotColor = () => {
+    if (mqttConnecting) return "bg-orange";
+    if (mqttConnected) return "bg-primary";
+    return "bg-destructive";
   };
 
   return (
@@ -151,18 +191,25 @@ const ConnectionTestScreen = () => {
 
           <View className="flex-row items-center gap-2">
             <View
-              className={`w-2 h-2 rounded-full ${isConnected ? "bg-primary" : "bg-destructive"}`}
+              className={`w-2 h-2 rounded-full ${getConnectionDotColor()}`}
             />
-            <Text
-              className={`text-sm font-medium ${isConnected ? "text-primary" : "text-destructive"}`}
-            >
-              {isConnected ? "Connected" : "Disconnected"}
+            <Text className={`text-sm font-medium ${getConnectionColor()}`}>
+              {getConnectionStatus()}
             </Text>
           </View>
         </View>
 
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="m-6 gap-6">
+            {!mqttConnected && (
+              <View className="bg-orange-accent border border-orange-300 rounded-xl p-4">
+                <Text className="text-orange-800 text-sm font-medium">
+                  MQTT is not connected. Please go back to the home screen and
+                  enable MQTT to start testing.
+                </Text>
+              </View>
+            )}
+
             <CustomInput
               label="MQTT Topic"
               placeholder="e.g. sensors/temperature"
@@ -188,21 +235,36 @@ const ConnectionTestScreen = () => {
                   title="Subscribe"
                   onPress={handleSubscribe}
                   variant="outline"
+                  disabled={!mqttConnected}
                 />
               </View>
               <View className="flex-1">
-                <CustomButton title="Publish" onPress={handlePublish} />
+                <CustomButton
+                  title="Publish"
+                  onPress={handlePublish}
+                  disabled={!mqttConnected}
+                />
               </View>
             </View>
 
-            {isSubscribed && (
-              <View className="bg-[#E0FFF5] border border-green-300 rounded-xl p-3">
-                <View className="flex-row items-center gap-2">
-                  <Radio color="#00bc7d" size={16} />
-                  <Text className="text-primary text-sm font-medium">
-                    Subscribed to: {connectionData.topic}
-                  </Text>
-                </View>
+            {subscribedTopics.length > 0 && (
+              <View className="gap-2">
+                <Text className="text-muted-foreground text-sm font-medium">
+                  Subscribed Topics:
+                </Text>
+                {subscribedTopics.map((topic, index) => (
+                  <View
+                    key={index}
+                    className="bg-primary-accent border border-green-300 rounded-xl p-3"
+                  >
+                    <View className="flex-row items-center gap-2">
+                      <Radio color="#00bc7d" size={16} />
+                      <Text className="text-primary text-sm font-medium">
+                        {topic}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
               </View>
             )}
 
@@ -221,7 +283,9 @@ const ConnectionTestScreen = () => {
                   No messages yet
                 </Text>
                 <Text className="text-muted-foreground text-sm mt-1">
-                  Subscribe or publish to see messages here
+                  {mqttConnected
+                    ? "Subscribe or publish to see messages here"
+                    : "Connect MQTT from home screen to start testing"}
                 </Text>
               </View>
             ) : (
@@ -236,7 +300,7 @@ const ConnectionTestScreen = () => {
                         <View
                           className={`w-2 h-2 rounded-full ${
                             message.type === "published"
-                              ? "bg-[#1447E6]"
+                              ? "bg-blue"
                               : "bg-primary"
                           }`}
                         />

@@ -14,6 +14,11 @@ enum UserRole {
   CREW
 }
 
+enum AssetType {
+  HELICOPTER
+  TRAILER
+}
+
 model User {
   id       String   @id @default(cuid())
   fullName String
@@ -117,9 +122,9 @@ model TiltSensor {
 
 model SerialNumber {
   id           String @id @default(cuid())
-  type         String // 'helicopter' or 'trailer'
+  assetType    AssetType
   name         String
-  serialNumber String
+  serialNumber String @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

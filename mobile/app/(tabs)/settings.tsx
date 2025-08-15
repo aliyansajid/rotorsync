@@ -6,11 +6,43 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import * as Notifications from "expo-notifications";
+import {
+  useNotificationHandler,
+  registerForPushNotificationsAsync,
+  scheduleLocalNotification,
+} from "@/services/notificationHandler";
+
+type PermissionStatus = "granted" | "denied" | "undetermined";
 
 const SettingsScreen = () => {
+  const [notificationPermission, setNotificationPermission] =
+    useState<PermissionStatus>("undetermined");
+  const [pushToken, setPushToken] = useState<string | null>(null);
+
+  // Initialize notification handlers
+  useNotificationHandler();
+
+  useEffect(() => {
+    checkNotificationPermissions();
+    setupPushNotifications();
+  }, []);
+
+  const checkNotificationPermissions = async () => {
+    const { status } = await Notifications.getPermissionsAsync();
+    setNotificationPermission(status as PermissionStatus);
+  };
+
+  const setupPushNotifications = async () => {
+    const token = await registerForPushNotificationsAsync();
+    setPushToken(token);
+  };
+
   const handleProfilePress = () => {
     router.push("/settings/profile");
   };
@@ -21,6 +53,38 @@ const SettingsScreen = () => {
 
   const handleSerialNumber = () => {
     router.push("/settings/serial-number");
+  };
+
+  const handlePushNotification = async () => {
+    try {
+      // Check if we have permission
+      const { status } = await Notifications.getPermissionsAsync();
+
+      if (status !== "granted") {
+        // Request permission if not granted
+        const { status: newStatus } =
+          await Notifications.requestPermissionsAsync();
+        setNotificationPermission(newStatus as PermissionStatus);
+
+        if (newStatus !== "granted") {
+          Alert.alert(
+            "Permission Required",
+            "Please enable notifications in your device settings to test push notifications."
+          );
+          return;
+        }
+      }
+
+      // Send test notification
+      await scheduleLocalNotification(
+        "Test Notification",
+        "Push notifications are working",
+        { screen: "settings" }
+      );
+    } catch (error) {
+      Alert.alert("Error", "Failed to send test notification");
+      console.error("Test notification error:", error);
+    }
   };
 
   return (
@@ -65,7 +129,7 @@ const SettingsScreen = () => {
                 className="p-4 flex-row items-center gap-3 border-b border-border"
                 onPress={handleConnectionTest}
               >
-                <View className="bg-primary-accent flex-row items-center justify-center h-12 w-12 rounded-xl">
+                <View className="bg-primary-accent flex-row items-center justify-center h-12 w-12 rounded-full">
                   <Wifi color={"#00bc7d"} />
                 </View>
 
@@ -78,10 +142,10 @@ const SettingsScreen = () => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="p-4 flex-row items-center gap-3"
+                className="p-4 flex-row items-center gap-3 border-b border-border"
                 onPress={handleSerialNumber}
               >
-                <View className="bg-primary-accent flex-row items-center justify-center h-12 w-12 rounded-xl">
+                <View className="bg-primary-accent flex-row items-center justify-center h-12 w-12 rounded-full">
                   <Hash color={"#00bc7d"} />
                 </View>
 
@@ -93,8 +157,11 @@ const SettingsScreen = () => {
                 <ChevronRight color={"#737373"} size={20} />
               </TouchableOpacity>
 
-              <TouchableOpacity className="p-4 flex-row items-center gap-3">
-                <View className="bg-primary-accent flex-row items-center justify-center h-12 w-12 rounded-xl">
+              <TouchableOpacity
+                className="p-4 flex-row items-center gap-3"
+                onPress={handlePushNotification}
+              >
+                <View className="bg-primary-accent flex-row items-center justify-center h-12 w-12 rounded-full">
                   <Bell color={"#00bc7d"} />
                 </View>
 
