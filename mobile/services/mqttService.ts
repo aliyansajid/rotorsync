@@ -1,6 +1,7 @@
 import mqtt, { MqttClient } from "mqtt";
 import { AppState, AppStateStatus } from "react-native";
 import { notifyMqttStatus } from "./notificationHandler";
+import { backgroundTaskManager } from "./backgroundTaskManager";
 
 const API_BASE_URL = "http://192.168.100.17:3000";
 
@@ -20,6 +21,9 @@ export interface MqttConnectionStatus {
   lastConnected?: string;
   reconnectAttempts?: number;
   wasConnectedBeforeBackground?: boolean;
+  backgroundMode?: boolean;
+  appState?: string;
+  backgroundTasksRegistered?: any;
 }
 
 export interface ApiResponse<T> {
@@ -68,19 +72,22 @@ class MqttService {
     isConnecting: false,
     reconnectAttempts: 0,
     wasConnectedBeforeBackground: false,
+    backgroundMode: false,
   };
   private statusCallbacks: ((status: MqttConnectionStatus) => void)[] = [];
   public shouldStayConnected: boolean = false;
   private appStateSubscription: any = null;
   private currentAppState: AppStateStatus = "active";
   private reconnectAttempts: number = 0;
-  private maxReconnectAttempts: number = 5;
+  private maxReconnectAttempts: number = 10; // Increased for background mode
   private reconnectInterval: number = 5000;
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private lastActiveTime: number = Date.now();
   private connectionLostInBackground: boolean = false;
   private wasConnectedBeforeBackground: boolean = false;
   private backgroundDisconnectionNotified: boolean = false;
+  private backgroundModeEnabled: boolean = false;
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.initializeAppStateHandling();
@@ -107,40 +114,48 @@ class MqttService {
       this.lastActiveTime = Date.now();
       this.wasConnectedBeforeBackground = this.isConnected();
       this.backgroundDisconnectionNotified = false;
-      this.handleAppGoingToBackground();
+      await this.handleAppGoingToBackground();
     } else if (nextAppState === "active") {
       // App coming to foreground
       await this.handleAppComingToForeground(previousAppState);
     }
   }
 
-  private handleAppGoingToBackground() {
+  private async handleAppGoingToBackground() {
     console.log("App going to background, MQTT connected:", this.isConnected());
 
     if (this.shouldStayConnected && this.isConnected()) {
-      // Start minimal heartbeat to detect disconnection
-      this.startHeartbeat();
+      // Enable background mode
+      this.backgroundModeEnabled = true;
+      this.updateStatus({ backgroundMode: true });
+
+      // Start background tasks for maintaining connection
+      await backgroundTaskManager.startMqttBackgroundMode();
+
+      // Start aggressive heartbeat for connection monitoring
+      this.startBackgroundHeartbeat();
+
+      console.log("Background mode enabled for MQTT");
     }
   }
 
   private async handleAppComingToForeground(previousAppState: AppStateStatus) {
     console.log("App coming to foreground from:", previousAppState);
 
-    // Stop heartbeat
-    this.stopHeartbeat();
+    // Stop background heartbeat
+    this.stopBackgroundHeartbeat();
 
     if (previousAppState === "background" && this.shouldStayConnected) {
       const timeInBackground = Date.now() - this.lastActiveTime;
       console.log(`App was in background for ${timeInBackground}ms`);
 
-      // Check if we lost connection while in background
+      // Check connection status
       const isCurrentlyConnected = this.isConnected();
 
       if (this.wasConnectedBeforeBackground && !isCurrentlyConnected) {
-        // We were connected before background but lost connection
+        // Connection lost while in background
         console.log("Connection lost while in background");
 
-        // Show disconnection notification now that we're back
         if (!this.backgroundDisconnectionNotified) {
           await notifyMqttStatus(
             "disconnected",
@@ -149,18 +164,22 @@ class MqttService {
           this.backgroundDisconnectionNotified = true;
         }
 
-        // Attempt to reconnect
-        console.log("Reconnecting MQTT after returning to foreground");
+        // Attempt immediate reconnection
         setTimeout(() => {
           this.handleForegroundReconnection();
         }, 1000);
-      } else if (!this.wasConnectedBeforeBackground && isCurrentlyConnected) {
-        // We somehow got connected while in background (unlikely but possible)
-        await notifyMqttStatus("connected");
       } else if (isCurrentlyConnected) {
-        // Test connection to make sure it's really working
+        // Test connection health
         this.testConnection();
+        await notifyMqttStatus(
+          "connected",
+          "Connection maintained in background"
+        );
       }
+
+      // Disable background mode
+      this.backgroundModeEnabled = false;
+      this.updateStatus({ backgroundMode: false });
 
       // Reset background state
       this.connectionLostInBackground = false;
@@ -168,37 +187,101 @@ class MqttService {
     }
   }
 
-  private startHeartbeat() {
+  private startBackgroundHeartbeat() {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
     }
 
-    // Check connection every 10 seconds while in background
+    // More frequent heartbeat for background mode (every 30 seconds)
     this.heartbeatInterval = setInterval(() => {
       if (this.client && this.shouldStayConnected) {
-        // Check if connection is still alive
         if (!this.client.connected && !this.connectionLostInBackground) {
-          console.log("Connection lost detected in background");
+          console.log("Background heartbeat: Connection lost detected");
           this.connectionLostInBackground = true;
           this.updateStatus({
             isConnected: false,
           });
+
+          // Start aggressive reconnection in background
+          this.startBackgroundReconnection();
+        } else if (this.client.connected) {
+          // Send heartbeat message
+          try {
+            this.client.publish(
+              "rotorsync/heartbeat",
+              JSON.stringify({
+                timestamp: Date.now(),
+                clientId: this.client.options.clientId,
+                mode: "background",
+              }),
+              { qos: 0 }
+            );
+          } catch (error) {
+            console.error("Background heartbeat failed:", error);
+          }
         }
       }
-    }, 10000); // Check every 10 seconds
+    }, 30000); // Every 30 seconds
   }
 
-  private stopHeartbeat() {
+  private stopBackgroundHeartbeat() {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
     }
   }
 
+  private async startBackgroundReconnection() {
+    // Only attempt reconnection if we're still supposed to be connected
+    if (!this.shouldStayConnected || this.currentAppState === "active") {
+      return;
+    }
+
+    console.log("Starting background reconnection attempts");
+
+    // Clear any existing reconnection timeout
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+    }
+
+    // More aggressive reconnection in background
+    const attemptReconnection = async () => {
+      if (
+        this.shouldStayConnected &&
+        this.config &&
+        this.currentAppState === "background"
+      ) {
+        console.log(
+          `Background reconnection attempt ${this.reconnectAttempts + 1}`
+        );
+
+        const connected = await this.connect(this.config);
+
+        if (connected) {
+          console.log("Background reconnection successful");
+          this.reconnectAttempts = 0;
+          this.connectionLostInBackground = false;
+        } else if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          this.reconnectAttempts++;
+          const delay = Math.min(
+            this.reconnectInterval * Math.pow(1.5, this.reconnectAttempts - 1),
+            60000
+          );
+
+          this.reconnectTimeout = setTimeout(attemptReconnection, delay);
+        } else {
+          console.log("Background reconnection failed after max attempts");
+        }
+      }
+    };
+
+    // Start first attempt after a short delay
+    this.reconnectTimeout = setTimeout(attemptReconnection, 2000);
+  }
+
   private testConnection() {
     if (this.client && this.client.connected) {
       try {
-        // Test connection with a simple publish
         this.client.publish(
           "rotorsync/connection-test",
           JSON.stringify({
@@ -228,7 +311,6 @@ class MqttService {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.log("Max reconnection attempts reached");
 
-      // Show final failure notification
       await notifyMqttStatus(
         "disconnected",
         `Failed to reconnect after ${this.maxReconnectAttempts} attempts`
@@ -244,8 +326,10 @@ class MqttService {
     }
 
     this.reconnectAttempts++;
-    const delay =
-      this.reconnectInterval * Math.pow(1.5, this.reconnectAttempts - 1);
+    const delay = Math.min(
+      this.reconnectInterval * Math.pow(1.5, this.reconnectAttempts - 1),
+      30000
+    );
 
     console.log(
       `Reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`
@@ -256,20 +340,16 @@ class MqttService {
     });
 
     setTimeout(async () => {
-      if (
-        this.config &&
-        this.shouldStayConnected &&
-        this.currentAppState === "active"
-      ) {
+      if (this.config && this.shouldStayConnected) {
         const connected = await this.connect(this.config);
         if (connected) {
-          this.reconnectAttempts = 0; // Reset on successful connection
+          this.reconnectAttempts = 0;
           await notifyMqttStatus(
             "connected",
             "Successfully reconnected to MQTT broker"
           );
         } else {
-          await this.reconnectWithBackoff(); // Try again
+          await this.reconnectWithBackoff();
         }
       }
     }, delay);
@@ -293,6 +373,8 @@ class MqttService {
       ...this.connectionStatus,
       ...status,
       wasConnectedBeforeBackground: this.wasConnectedBeforeBackground,
+      backgroundMode: this.backgroundModeEnabled,
+      appState: this.currentAppState,
     };
     console.log("MQTT Status Updated:", this.connectionStatus);
 
@@ -335,11 +417,21 @@ class MqttService {
         username: config.username,
         password: config.password,
         reconnectPeriod: 0, // Disable automatic reconnection
-        connectTimeout: 15000,
+        connectTimeout: 20000, // Increased timeout
         clean: false, // Keep session across reconnects
-        keepalive: 60,
+        keepalive: 30, // More frequent keepalive for better detection
         protocolId: "MQTT" as const,
         protocolVersion: 4 as const,
+        will: {
+          topic: "rotorsync/client/disconnect",
+          payload: JSON.stringify({
+            clientId: `rotorsync_app_${Date.now()}`,
+            timestamp: Date.now(),
+            reason: "unexpected_disconnect",
+          }),
+          qos: 0 as const,
+          retain: false,
+        },
       };
 
       this.client = mqtt.connect(url, options);
@@ -365,7 +457,7 @@ class MqttService {
             });
             resolve(false);
           }
-        }, 20000);
+        }, 25000);
 
         this.client.on("connect", async () => {
           clearTimeout(connectionTimeout);
@@ -382,9 +474,25 @@ class MqttService {
             lastConnected: now,
           });
 
-          // 🔔 Send notification when connected (only if app is active)
-          if (this.currentAppState === "active") {
+          // Send notification when connected (only if app is active or this is first connection)
+          if (
+            this.currentAppState === "active" ||
+            !this.backgroundModeEnabled
+          ) {
             await notifyMqttStatus("connected");
+          }
+
+          // Publish connection announcement
+          if (this.client) {
+            this.client.publish(
+              "rotorsync/client/connect",
+              JSON.stringify({
+                clientId: this.client.options.clientId,
+                timestamp: Date.now(),
+                appState: this.currentAppState,
+              }),
+              { qos: 0 }
+            );
           }
 
           resolve(true);
@@ -407,7 +515,7 @@ class MqttService {
             isConnected: false,
           });
 
-          // Only show notification if app is active
+          // Handle disconnection based on app state
           if (this.currentAppState === "active" && this.shouldStayConnected) {
             await notifyMqttStatus("disconnected");
 
@@ -416,9 +524,15 @@ class MqttService {
             setTimeout(() => {
               this.reconnectWithBackoff();
             }, 2000);
-          } else if (this.currentAppState === "background") {
+          } else if (
+            this.currentAppState === "background" &&
+            this.shouldStayConnected
+          ) {
             // Mark that connection was lost in background
             this.connectionLostInBackground = true;
+
+            // Start background reconnection
+            this.startBackgroundReconnection();
           }
         });
 
@@ -440,6 +554,14 @@ class MqttService {
             isConnected: false,
           });
         });
+
+        // Handle reconnect events
+        this.client.on("reconnect", () => {
+          console.log("MQTT attempting to reconnect...");
+          this.updateStatus({
+            isConnecting: true,
+          });
+        });
       });
     } catch (error) {
       console.error("MQTT Connection Error:", error);
@@ -459,16 +581,40 @@ class MqttService {
     this.reconnectAttempts = 0;
     this.connectionLostInBackground = false;
     this.wasConnectedBeforeBackground = false;
+    this.backgroundModeEnabled = false;
 
-    // Stop heartbeat
-    this.stopHeartbeat();
+    // Clear any pending reconnection timeouts
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+
+    // Stop background heartbeat
+    this.stopBackgroundHeartbeat();
+
+    // Stop background tasks
+    await backgroundTaskManager.stopMqttBackgroundMode();
 
     if (this.client) {
       return new Promise((resolve) => {
         if (this.client) {
+          // Publish disconnection message
+          if (this.client.connected) {
+            this.client.publish(
+              "rotorsync/client/disconnect",
+              JSON.stringify({
+                clientId: this.client.options.clientId,
+                timestamp: Date.now(),
+                reason: "user_disconnect",
+              }),
+              { qos: 0 }
+            );
+          }
+
           this.updateStatus({
             isConnecting: false,
             isConnected: false,
+            backgroundMode: false,
           });
 
           this.client.end(true, {}, () => {
@@ -477,6 +623,7 @@ class MqttService {
             this.updateStatus({
               isConnecting: false,
               isConnected: false,
+              backgroundMode: false,
             });
             resolve();
           });
@@ -484,14 +631,16 @@ class MqttService {
           this.updateStatus({
             isConnecting: false,
             isConnected: false,
+            backgroundMode: false,
           });
           resolve();
         }
       });
     } else {
       this.updateStatus({
-        isConnecting: false,
         isConnected: false,
+        isConnecting: false,
+        backgroundMode: false,
       });
     }
   }
@@ -536,9 +685,37 @@ class MqttService {
     );
   }
 
+  // Get detailed status including background mode info
+  async getDetailedStatus() {
+    try {
+      const backgroundTaskStatus =
+        await backgroundTaskManager.getBackgroundFetchStatus();
+
+      return {
+        ...this.connectionStatus,
+        backgroundTasksRegistered: backgroundTaskStatus,
+        appState: this.currentAppState,
+        shouldStayConnected: this.shouldStayConnected,
+      };
+    } catch (error) {
+      console.error("Error getting detailed status:", error);
+      return {
+        ...this.connectionStatus,
+        appState: this.currentAppState,
+        shouldStayConnected: this.shouldStayConnected,
+        backgroundTasksRegistered: { error: "Failed to get status" },
+      };
+    }
+  }
+
   // Cleanup method
   async cleanup() {
-    this.stopHeartbeat();
+    this.stopBackgroundHeartbeat();
+
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
 
     if (this.appStateSubscription) {
       this.appStateSubscription?.remove();

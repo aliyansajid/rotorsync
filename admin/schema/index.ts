@@ -53,18 +53,18 @@ export const serialNumberSchema = z.object({
   name: z
     .string()
     .min(1, "Name is required")
-    .regex(/^[A-Za-z0-9]+$/, {
-      message: "Name must contain only letters and numbers",
+    .regex(/^[A-Za-z0-9\s/]+$/, {
+      message:
+        "Name must contain only letters, numbers, spaces, and forward slashes",
     })
     .max(50, "Name must be less than 50 characters"),
   serialNumber: z
     .string()
     .min(1, "Serial number is required")
-    .regex(/^[A-Za-z0-9]+$/, {
-      message: "Serial number must contain only letters and numbers",
+    .regex(/^[A-Za-z0-9\s/]+$/, {
+      message:
+        "Serial number must contain only letters, numbers, spaces, and forward slashes",
     })
     .max(50, "Serial number must be less than 50 characters")
     .toUpperCase(),
 });
-
-export type SerialNumberFormData = z.infer<typeof serialNumberSchema>;

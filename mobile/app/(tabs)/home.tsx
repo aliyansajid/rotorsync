@@ -18,6 +18,10 @@ import {
 } from "lucide-react-native";
 import DeviceCard from "@/components/DeviceCard";
 import { useMqtt } from "@/hooks/useMqtt";
+import {
+  useNotificationHandler,
+  registerForPushNotificationsAsync,
+} from "@/services/notificationHandler";
 
 const HomeScreen = () => {
   const [devices, setDevices] = useState({
@@ -28,20 +32,50 @@ const HomeScreen = () => {
     mqtt: { isEnabled: false, isConnected: false },
   });
 
+  const [detailedStatus, setDetailedStatus] = useState<any>(null);
+
   const {
     connect: connectMqtt,
     disconnect: disconnectMqtt,
     isConnected: mqttConnected,
     isConnecting: mqttConnecting,
     error: mqttError,
-    reconnectAttempts,
-    lastConnected,
-    wasConnectedBeforeBackground,
     subscribe,
     onMessage,
     publish,
     getDetailedStatus,
+    connectionStatus,
   } = useMqtt();
+
+  // Initialize notification handler
+  useNotificationHandler();
+
+  // Request notification permissions on component mount
+  useEffect(() => {
+    const initializeNotifications = async () => {
+      try {
+        const token = await registerForPushNotificationsAsync();
+      } catch (error) {
+        console.error("Failed to initialize notifications:", error);
+      }
+    };
+
+    initializeNotifications();
+  }, []);
+
+  // Update detailed status when connection status changes
+  useEffect(() => {
+    const updateDetailedStatus = async () => {
+      try {
+        const status = await getDetailedStatus();
+        setDetailedStatus(status);
+      } catch (error) {
+        console.error("Error getting detailed status:", error);
+      }
+    };
+
+    updateDetailedStatus();
+  }, [connectionStatus, getDetailedStatus]);
 
   // Update MQTT device status based on actual connection
   useEffect(() => {
@@ -67,7 +101,6 @@ const HomeScreen = () => {
         console.log(
           "App became active and MQTT should be connected but is not"
         );
-        // The service will handle reconnection automatically
       }
     };
 
@@ -137,27 +170,16 @@ const HomeScreen = () => {
         if (topic.includes("/system")) {
           console.log("System message received:", data);
         }
+
+        // Handle heartbeat responses (optional)
+        if (topic.includes("/heartbeat")) {
+          console.log("Heartbeat received:", data);
+        }
       } catch (error) {
         console.error("Error parsing MQTT message:", error);
       }
     });
   }, [onMessage, devices]);
-
-  // Subscribe to relevant topics when MQTT connects
-  useEffect(() => {
-    if (mqttConnected) {
-      console.log("MQTT connected, subscribing to topics");
-
-      // Subscribe to device status updates
-      subscribe("rotorsync/devices/+/status");
-
-      // Subscribe to sensor data
-      subscribe("rotorsync/sensors/+/data");
-
-      // Subscribe to system messages
-      subscribe("rotorsync/system/+");
-    }
-  }, [mqttConnected, subscribe]);
 
   const toggleDevice = async (deviceKey: keyof typeof devices) => {
     if (deviceKey === "mqtt") {
@@ -174,7 +196,15 @@ const HomeScreen = () => {
         const connected = await connectMqtt();
 
         console.log("MQTT connection attempt result:", connected);
-        console.log("Detailed MQTT status:", getDetailedStatus());
+
+        // Update detailed status after connection attempt
+        try {
+          const status = await getDetailedStatus();
+          setDetailedStatus(status);
+          console.log("Detailed MQTT status:", status);
+        } catch (error) {
+          console.error("Error getting detailed status:", error);
+        }
       } else {
         // Disconnect
         await disconnectMqtt();
@@ -212,35 +242,6 @@ const HomeScreen = () => {
         },
       }));
     }
-  };
-
-  // Helper function to get connection status text
-  const getConnectionStatusText = () => {
-    if (mqttConnecting) return "Connecting...";
-    if (mqttConnected && wasConnectedBeforeBackground)
-      return "Connected (Recovered)";
-    if (mqttConnected) return "Connected";
-    if (mqttError) return "Error";
-    if (reconnectAttempts && reconnectAttempts > 0)
-      return `Reconnecting (${reconnectAttempts}/5)`;
-    if (lastConnected)
-      return `Last: ${new Date(lastConnected).toLocaleTimeString()}`;
-    return "Disconnected";
-  };
-
-  // Helper function to get detailed status for debugging
-  const getStatusInfo = () => {
-    const status = getDetailedStatus();
-    return {
-      connected: mqttConnected,
-      connecting: mqttConnecting,
-      error: mqttError,
-      attempts: reconnectAttempts,
-      lastConnected: lastConnected
-        ? new Date(lastConnected).toLocaleString()
-        : "Never",
-      wasConnectedBeforeBackground: wasConnectedBeforeBackground,
-    };
   };
 
   return (

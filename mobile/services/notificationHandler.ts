@@ -20,10 +20,9 @@ Notifications.setNotificationHandler({
 
     return {
       shouldShowAlert: true,
-      shouldPlaySound:
-        data.alertType === "error" || data.alertType === "warning",
-      shouldSetBadge: false,
-      shouldShowBanner: true,
+      shouldPlaySound: true, // Always play sound
+      shouldSetBadge: true,
+      shouldShowBanner: true, // Always show banner
       shouldShowList: true,
     };
   },
@@ -33,12 +32,16 @@ Notifications.setNotificationHandler({
 const createNotificationChannels = async () => {
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("mqtt-status", {
-      name: "MQTT Status",
-      importance: Notifications.AndroidImportance.DEFAULT,
+      name: "MQTT Connection Status",
+      importance: Notifications.AndroidImportance.HIGH, // Changed to HIGH
       vibrationPattern: [0, 250, 250, 250],
       lightColor: "#00BC7D",
       sound: "default",
       description: "MQTT connection status notifications",
+      enableLights: true,
+      enableVibrate: true,
+      showBadge: true,
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
     });
 
     await Notifications.setNotificationChannelAsync("system-alerts", {
@@ -48,6 +51,21 @@ const createNotificationChannels = async () => {
       lightColor: "#FF231F7C",
       sound: "default",
       description: "Important system alerts and errors",
+      enableLights: true,
+      enableVibrate: true,
+      showBadge: true,
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+    });
+
+    await Notifications.setNotificationChannelAsync("background-service", {
+      name: "Background Service",
+      importance: Notifications.AndroidImportance.LOW,
+      sound: undefined, // Changed from null to undefined
+      description: "Background MQTT service notifications",
+      enableLights: false,
+      enableVibrate: false,
+      showBadge: false,
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.SECRET,
     });
   }
 };
@@ -122,6 +140,7 @@ export const registerForPushNotificationsAsync = async (): Promise<
         allowAlert: true,
         allowBadge: true,
         allowSound: true,
+        allowCriticalAlerts: true,
       },
     });
     finalStatus = status;
@@ -150,12 +169,18 @@ export const registerForPushNotificationsAsync = async (): Promise<
   return token;
 };
 
-// Basic local notification function
+// Enhanced local notification function
 export const scheduleLocalNotification = async (
   title: string,
   body: string,
-  data: NotificationData = {}
+  data: NotificationData = {},
+  priority: "default" | "high" = "default"
 ) => {
+  const channelId =
+    data.alertType === "error" || data.alertType === "warning"
+      ? "system-alerts"
+      : "mqtt-status";
+
   await Notifications.scheduleNotificationAsync({
     content: {
       title,
@@ -164,18 +189,23 @@ export const scheduleLocalNotification = async (
         ...data,
         timestamp: new Date().toISOString(),
       },
-      sound:
-        data.alertType === "error" || data.alertType === "warning"
-          ? "default"
-          : false,
+      sound: true, // Always enable sound
+      priority:
+        priority === "high"
+          ? Notifications.AndroidNotificationPriority.HIGH
+          : Notifications.AndroidNotificationPriority.DEFAULT,
+      vibrate: [0, 250, 250, 250],
+      ...(Platform.OS === "android" && {
+        channelId,
+      }),
     },
     trigger: null,
   });
 };
 
-// Simple MQTT status notifications
+// Enhanced MQTT status notifications
 export const notifyMqttStatus = async (
-  status: "connected" | "disconnected",
+  status: "connected" | "disconnected" | "reconnecting",
   details?: string
 ) => {
   const config = {
@@ -183,18 +213,59 @@ export const notifyMqttStatus = async (
       title: "MQTT Connected",
       body: "Successfully connected to MQTT broker",
       alertType: "success" as const,
+      priority: "high" as const,
     },
     disconnected: {
       title: "MQTT Disconnected",
       body: details || "Lost connection to MQTT broker",
       alertType: "warning" as const,
+      priority: "high" as const,
+    },
+    reconnecting: {
+      title: "MQTT Reconnecting",
+      body: details || "Attempting to reconnect to MQTT broker...",
+      alertType: "info" as const,
+      priority: "default" as const,
     },
   };
 
-  const { title, body, alertType } = config[status];
+  const { title, body, alertType, priority } = config[status];
 
-  await scheduleLocalNotification(title, body, {
-    alertType,
-    screen: "home",
+  await scheduleLocalNotification(
+    title,
+    body,
+    {
+      alertType,
+      screen: "home",
+    },
+    priority
+  );
+};
+
+// Background service notification (persistent)
+export const showBackgroundServiceNotification = async () => {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "MQTT Service Running",
+      body: "Maintaining connection in background",
+      data: {
+        persistent: true,
+        alertType: "info",
+      },
+      sound: false,
+      priority: Notifications.AndroidNotificationPriority.LOW,
+      ...(Platform.OS === "android" && {
+        channelId: "background-service",
+        sticky: true,
+        ongoing: true,
+      }),
+    },
+    trigger: null,
+    identifier: "mqtt-background-service",
   });
+};
+
+// Remove background service notification
+export const removeBackgroundServiceNotification = async () => {
+  await Notifications.dismissNotificationAsync("mqtt-background-service");
 };

@@ -86,8 +86,8 @@ export const useMqtt = () => {
   );
 
   // Method to get detailed connection info
-  const getDetailedStatus = useCallback(() => {
-    return mqttService.getConnectionStatus();
+  const getDetailedStatus = useCallback(async () => {
+    return await mqttService.getDetailedStatus();
   }, []);
 
   return {

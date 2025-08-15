@@ -5,24 +5,32 @@ import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
 import { CustomFormField, FormFieldType } from "@/components/CustomFormField";
 import { ButtonVariant, CustomButton } from "@/components/CustomButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { SelectItem } from "../ui/select";
-import { serialNumberSchema, SerialNumberFormData } from "@/schema/index";
-import { createSerialNumber } from "@/app/actions/serialNumberAction";
+import { serialNumberSchema } from "@/schema/index";
+import {
+  createSerialNumber,
+  updateSerialNumber,
+  getSerialNumberById,
+} from "@/app/actions/serialNumberAction";
+import { Loader2 } from "lucide-react";
+import z from "zod";
 
 interface SerialNumberFormProps {
+  serialNumberId?: string;
   onSuccess?: () => void;
-  initialData?: SerialNumberFormData & { id?: string };
 }
 
 const SerialNumberForm = ({
+  serialNumberId,
   onSuccess,
-  initialData,
 }: SerialNumberFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const isEditing = !!serialNumberId;
 
-  const form = useForm<SerialNumberFormData>({
+  const form = useForm<z.infer<typeof serialNumberSchema>>({
     resolver: zodResolver(serialNumberSchema),
     defaultValues: {
       assetType: "TRAILER",
@@ -31,15 +39,45 @@ const SerialNumberForm = ({
     },
   });
 
-  async function onSubmit(values: SerialNumberFormData) {
+  // Load data for editing
+  useEffect(() => {
+    if (isEditing && serialNumberId) {
+      setIsLoadingData(true);
+      getSerialNumberById(serialNumberId)
+        .then((result) => {
+          if (result.success && result.data) {
+            form.reset({
+              assetType: result.data.assetType,
+              name: result.data.name,
+              serialNumber: result.data.serialNumber,
+            });
+          } else {
+            toast.error(result.error || "Failed to load serial number data");
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading serial number:", error);
+          toast.error("Failed to load serial number data");
+        })
+        .finally(() => {
+          setIsLoadingData(false);
+        });
+    }
+  }, [isEditing, serialNumberId, form]);
+
+  async function onSubmit(values: z.infer<typeof serialNumberSchema>) {
     setIsLoading(true);
 
     try {
-      const result = await createSerialNumber(values);
+      const result = isEditing
+        ? await updateSerialNumber(serialNumberId!, values)
+        : await createSerialNumber(values);
 
       if (result.success) {
         toast.success(result.message);
-        form.reset();
+        if (!isEditing) {
+          form.reset();
+        }
         onSuccess?.();
       } else {
         toast.error(result.error);
@@ -51,58 +89,56 @@ const SerialNumberForm = ({
     }
   }
 
-  return (
-    <div className="min-h-screen flex justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">Serial Number Registration</h1>
-          <p className="text-muted-foreground text-sm text-balance">
-            Register a new asset serial number in the system
-          </p>
-        </div>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <CustomFormField
-              fieldType={FormFieldType.SELECT}
-              control={form.control}
-              name="assetType"
-              label="Asset Type"
-              placeholder="Select an asset type"
-              className="w-full"
-            >
-              <SelectItem value="TRAILER">Trailer</SelectItem>
-              <SelectItem value="HELICOPTER">Helicopter</SelectItem>
-            </CustomFormField>
-
-            <CustomFormField
-              control={form.control}
-              fieldType={FormFieldType.INPUT}
-              inputType="text"
-              name="name"
-              label="Name"
-              placeholder="e.g., Trailer1"
-            />
-
-            <CustomFormField
-              control={form.control}
-              fieldType={FormFieldType.INPUT}
-              inputType="text"
-              name="serialNumber"
-              label="Serial Number"
-              placeholder="e.g., N789KB"
-            />
-
-            <CustomButton
-              variant={ButtonVariant.DEFAULT}
-              text="Register Serial Number"
-              isLoading={isLoading}
-              className="w-full"
-            />
-          </form>
-        </Form>
+  if (isLoadingData) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 p-4">
+        <Loader2 className="animate-spin w-8 h-8" />
+        <p className="text-sm text-muted-foreground text-center">Loading....</p>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <CustomFormField
+          fieldType={FormFieldType.SELECT}
+          control={form.control}
+          name="assetType"
+          label="Asset Type"
+          placeholder="Select an asset type"
+          className="w-full"
+        >
+          <SelectItem value="TRAILER">Trailer</SelectItem>
+          <SelectItem value="HELICOPTER">Helicopter</SelectItem>
+        </CustomFormField>
+
+        <CustomFormField
+          control={form.control}
+          fieldType={FormFieldType.INPUT}
+          inputType="text"
+          name="name"
+          label="Name"
+          placeholder="e.g. Trailer1"
+        />
+
+        <CustomFormField
+          control={form.control}
+          fieldType={FormFieldType.INPUT}
+          inputType="text"
+          name="serialNumber"
+          label="Serial Number"
+          placeholder="e.g. N789KB"
+        />
+
+        <CustomButton
+          variant={ButtonVariant.DEFAULT}
+          text={isEditing ? "Update" : "Save"}
+          isLoading={isLoading}
+          className="w-full"
+        />
+      </form>
+    </Form>
   );
 };
 

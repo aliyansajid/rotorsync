@@ -95,18 +95,13 @@ const MqttConfigurationForm = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-2xl font-bold">MQTT Configuration</h1>
           <p className="text-muted-foreground text-sm text-balance">
             Configure your MQTT broker connection settings
           </p>
-          {configExists && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-              Configuration exists - updating will overwrite
-            </span>
-          )}
         </div>
 
         <Form {...form}>
@@ -117,7 +112,7 @@ const MqttConfigurationForm = () => {
               inputType="text"
               name="host"
               label="Host"
-              placeholder="e.g., broker.hivemq.com"
+              placeholder="e.g. broker.hivemq.com"
             />
 
             <CustomFormField
@@ -126,7 +121,7 @@ const MqttConfigurationForm = () => {
               inputType="number"
               name="port"
               label="Port"
-              placeholder="e.g., 1883"
+              placeholder="e.g. 1883"
             />
 
             <CustomFormField
@@ -135,7 +130,7 @@ const MqttConfigurationForm = () => {
               inputType="text"
               name="basePath"
               label="Base Path"
-              placeholder="e.g., mqtt"
+              placeholder="e.g. mqtt"
             />
 
             <CustomFormField
@@ -156,7 +151,7 @@ const MqttConfigurationForm = () => {
               inputType="text"
               name="username"
               label="Username"
-              placeholder="e.g., rotorsync"
+              placeholder="e.g. rotorsync"
             />
 
             <CustomFormField
@@ -172,9 +167,7 @@ const MqttConfigurationForm = () => {
 
             <CustomButton
               variant={ButtonVariant.DEFAULT}
-              text={
-                configExists ? "Update Configuration" : "Save Configuration"
-              }
+              text={configExists ? "Update" : "Save"}
               isLoading={isLoading}
               className="w-full"
             />

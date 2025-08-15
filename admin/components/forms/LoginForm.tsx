@@ -11,6 +11,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 const formSchema = z.object({
   email: z.email({ error: "Please enter a valid email" }),
@@ -20,6 +21,8 @@ const formSchema = z.object({
 const LoginForm = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,6 +40,7 @@ const LoginForm = () => {
         email: values.email,
         password: values.password,
         redirect: false,
+        callbackUrl,
       });
 
       // Check for authentication errors
@@ -49,8 +53,8 @@ const LoginForm = () => {
         return;
       }
 
-      if (response?.ok) {
-        router.push("/");
+      if (response?.ok && response.url) {
+        router.push(response.url);
       } else {
         toast.error("Login failed. Please try again.");
       }

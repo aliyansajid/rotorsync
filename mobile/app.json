@@ -14,6 +14,9 @@
         "dark": "./assets/images/ios-dark.png",
         "light": "./assets/images/ios-light.png",
         "tinted": "./assets/images/ios-tinted.png"
+      },
+      "infoPlist": {
+        "UIBackgroundModes": ["background-processing", "background-fetch"]
       }
     },
     "android": {
@@ -23,7 +26,13 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.rotorsync",
-      "permissions": ["android.permission.INTERNET"]
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.WAKE_LOCK",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -31,7 +40,26 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "expo-dev-client",
       "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "sounds": ["./assets/sounds/notification.wav"]
+        }
+      ],
+      ["expo-task-manager"],
+      [
+        "expo-background-fetch",
+        {
+          "android": {
+            "minimumInterval": 15000
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
