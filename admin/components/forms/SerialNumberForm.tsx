@@ -13,7 +13,7 @@ import {
   createSerialNumber,
   updateSerialNumber,
   getSerialNumberById,
-} from "@/app/actions/serialNumberAction";
+} from "@/app/actions/serialNumberActions";
 import { Loader2 } from "lucide-react";
 import z from "zod";
 
@@ -56,7 +56,6 @@ const SerialNumberForm = ({
           }
         })
         .catch((error) => {
-          console.error("Error loading serial number:", error);
           toast.error("Failed to load serial number data");
         })
         .finally(() => {
@@ -91,8 +90,8 @@ const SerialNumberForm = ({
 
   if (isLoadingData) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 p-4">
-        <Loader2 className="animate-spin w-8 h-8" />
+      <div className="flex flex-col items-center justify-center gap-2">
+        <Loader2 className="animate-spin" size={32} />
         <p className="text-sm text-muted-foreground text-center">Loading....</p>
       </div>
     );

@@ -97,7 +97,7 @@ const RenderField = ({ field, props }: { field: any; props: CustomProps }) => {
         <Select onValueChange={field.onChange} defaultValue={field.value}>
           <FormControl>
             <SelectTrigger className={props.className}>
-              <SelectValue placeholder="Select a verified email to display" />
+              <SelectValue placeholder={props.placeholder} />
             </SelectTrigger>
           </FormControl>
           <SelectContent>{props.children}</SelectContent>

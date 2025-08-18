@@ -1,7 +1,7 @@
 import { DataTable } from "@/components/data-table/data-table";
 import { serialNumberColumns } from "@/components/data-table/serial-number-columns";
 import AddSerialNumber from "@/components/dialogs/AddSerialNumber";
-import { getSerialNumbers } from "@/app/actions/serialNumberAction";
+import { getSerialNumbers } from "@/app/actions/serialNumberActions";
 import { toast } from "sonner";
 
 const SerialNumberPage = async () => {

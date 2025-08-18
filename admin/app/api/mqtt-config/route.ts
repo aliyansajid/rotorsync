@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMqttConfiguration } from "@/app/actions/mqttAction";
+import { getMqttConfiguration } from "@/app/actions/mqttActions";
 
 export async function GET() {
   try {

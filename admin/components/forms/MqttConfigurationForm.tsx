@@ -12,7 +12,7 @@ import { SelectItem } from "../ui/select";
 import {
   saveMqttConfiguration,
   getMqttConfiguration,
-} from "@/app/actions/mqttAction";
+} from "@/app/actions/mqttActions";
 import { mqttConfigSchema } from "@/schema";
 import { Loader2 } from "lucide-react";
 
@@ -85,9 +85,9 @@ const MqttConfigurationForm = () => {
 
   if (isLoadingConfig) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center p-4">
-        <Loader2 className="animate-spin w-8 h-8" />
-        <p className="mt-2 text-sm text-muted-foreground text-center">
+      <div className="h-screen flex flex-col items-center justify-center gap-2">
+        <Loader2 className="animate-spin" size={32} />
+        <p className="text-sm text-muted-foreground text-center">
           Loading configuration...
         </p>
       </div>

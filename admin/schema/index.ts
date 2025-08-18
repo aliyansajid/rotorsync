@@ -57,7 +57,7 @@ export const serialNumberSchema = z.object({
       message:
         "Name must contain only letters, numbers, spaces, and forward slashes",
     })
-    .max(50, "Name must be less than 50 characters"),
+    .max(50, "Name must not exceed 50 characters"),
   serialNumber: z
     .string()
     .min(1, "Serial number is required")
@@ -65,6 +65,23 @@ export const serialNumberSchema = z.object({
       message:
         "Serial number must contain only letters, numbers, spaces, and forward slashes",
     })
-    .max(50, "Serial number must be less than 50 characters")
+    .max(50, "Serial number must not exceed 50 characters")
     .toUpperCase(),
+});
+
+export const raspiSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(50, "Name must not exceed 50 characters"),
+  deviceName: z
+    .string()
+    .min(1, "Device name is required")
+    .max(50, "Device name must not exceed 50 characters"),
+  mqttTopic: z
+    .string()
+    .min(1, "MQTT topic is required")
+    .max(50, "MQTT topic must not exceed 50 characters"),
+  helicopterId: z.string().optional(),
+  trailerId: z.string().optional(),
 });

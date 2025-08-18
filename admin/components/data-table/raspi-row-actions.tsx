@@ -29,18 +29,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { toast } from "sonner";
-import { serialNumberSchema } from "./schema";
-import { deleteSerialNumber } from "@/app/actions/serialNumberActions";
-import SerialNumberForm from "../forms/SerialNumberForm";
+import { raspiSchema } from "./schema";
+import { deleteRaspi } from "@/app/actions/raspiActions";
+import RaspiForm from "../forms/RaspiForm";
 
-interface SerialNumberRowActionsProps<TData> {
+interface RaspiRowActionsProps<TData> {
   row: Row<TData>;
 }
 
-export function SerialNumberRowActions<TData>({
-  row,
-}: SerialNumberRowActionsProps<TData>) {
-  const serialNumber = serialNumberSchema.parse(row.original);
+export function RaspiRowActions<TData>({ row }: RaspiRowActionsProps<TData>) {
+  const raspi = raspiSchema.parse(row.original);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -48,7 +46,7 @@ export function SerialNumberRowActions<TData>({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const result = await deleteSerialNumber(serialNumber.id);
+      const result = await deleteRaspi(raspi.id);
 
       if (result.success) {
         toast.success(result.message);
@@ -57,15 +55,20 @@ export function SerialNumberRowActions<TData>({
         toast.error(result.error);
       }
     } catch (error) {
-      toast.error("Failed to delete serial number");
+      toast.error("Failed to delete Raspi");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(serialNumber.serialNumber);
-    toast.success("Serial number copied to clipboard");
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(raspi.id);
+    toast.success("ID copied to clipboard");
+  };
+
+  const handleCopyMqttTopic = () => {
+    navigator.clipboard.writeText(raspi.mqttTopic);
+    toast.success("MQTT topic copied to clipboard");
   };
 
   return (
@@ -84,8 +87,9 @@ export function SerialNumberRowActions<TData>({
           <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleCopy}>
-            Copy Serial Number
+          <DropdownMenuItem onClick={handleCopyId}>Copy ID</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleCopyMqttTopic}>
+            Copy MQTT Topic
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -100,13 +104,13 @@ export function SerialNumberRowActions<TData>({
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Serial Number</DialogTitle>
+            <DialogTitle>Edit Raspi</DialogTitle>
             <DialogDescription>
-              Update the serial number information below.
+              Update the Raspi configuration below.
             </DialogDescription>
           </DialogHeader>
-          <SerialNumberForm
-            serialNumberId={serialNumber.id}
+          <RaspiForm
+            raspiId={raspi.id}
             onSuccess={() => setShowEditDialog(false)}
           />
         </DialogContent>
@@ -118,7 +122,7 @@ export function SerialNumberRowActions<TData>({
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
-              serial number {serialNumber.serialNumber}.
+              Raspi "{raspi.name}".
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

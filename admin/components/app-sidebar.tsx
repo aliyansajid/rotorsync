@@ -44,7 +44,7 @@ const data = {
     },
     {
       title: "Raspberry Pi",
-      url: "/raspberry-pi",
+      url: "/raspi",
       icon: Cpu,
     },
     {

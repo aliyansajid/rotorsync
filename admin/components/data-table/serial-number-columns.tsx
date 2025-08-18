@@ -41,8 +41,8 @@ export const serialNumberColumns: ColumnDef<SerialNumber>[] = [
       />
     ),
     enableSorting: false,
-    enableHiding: false,
   },
+
   {
     accessorKey: "assetType",
     header: ({ column }) => <ColumnHeader column={column} title="Type" />,
@@ -58,11 +58,13 @@ export const serialNumberColumns: ColumnDef<SerialNumber>[] = [
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
     },
+    enableSorting: false,
   },
   {
     accessorKey: "name",
     header: ({ column }) => <ColumnHeader column={column} title="Name" />,
     cell: ({ row }) => <div>{row.getValue("name")}</div>,
+    enableSorting: false,
   },
   {
     accessorKey: "serialNumber",
@@ -70,6 +72,7 @@ export const serialNumberColumns: ColumnDef<SerialNumber>[] = [
       <ColumnHeader column={column} title="Serial Number" />
     ),
     cell: ({ row }) => <div>{row.getValue("serialNumber")}</div>,
+    enableSorting: false,
   },
   {
     id: "actions",
