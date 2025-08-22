@@ -1,10 +1,13 @@
 -- CreateEnum
 CREATE TYPE "public"."UserRole" AS ENUM ('ADMIN', 'PILOT', 'CREW');
 
+-- CreateEnum
+CREATE TYPE "public"."AssetType" AS ENUM ('HELICOPTER', 'TRAILER');
+
 -- CreateTable
 CREATE TABLE "public"."users" (
     "id" TEXT NOT NULL,
-    "fullName" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "image" TEXT,
@@ -83,7 +86,7 @@ CREATE TABLE "public"."tilt_sensors" (
 -- CreateTable
 CREATE TABLE "public"."serial_numbers" (
     "id" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
+    "assetType" "public"."AssetType" NOT NULL,
     "name" TEXT NOT NULL,
     "serialNumber" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -221,6 +224,9 @@ CREATE TABLE "public"."mopeka_data" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "serial_numbers_serialNumber_key" ON "public"."serial_numbers"("serialNumber");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "verification_tokens_token_key" ON "public"."verification_tokens"("token");

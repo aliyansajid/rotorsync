@@ -1,4 +1,38 @@
-import z from "zod";
+import { z } from "zod";
+
+export const registerSchema = z.object({
+  name: z
+    .string({ error: "Name is required" })
+    .min(3, "Name must be at least 3 characters")
+    .max(50, "Name must be less than 50 characters")
+    .trim(),
+  email: z.email("Please enter a valid email").toLowerCase(),
+  password: z
+    .string({ error: "Password is required" })
+    .min(8, "Password must be at least 8 characters"),
+  role: z.enum(["PILOT", "CREW"], {
+    error: "Please select a role",
+  }),
+});
+
+export const loginSchema = z.object({
+  email: z.email("Please enter a valid email"),
+  password: z.string({ error: "Password is required" }),
+});
+
+export const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .min(3, "Name must be at least 3 characters")
+    .max(50, "Name must be less than 50 characters")
+    .optional(),
+  email: z.email("Please enter a valid email").optional(),
+  image: z.url("Please provide a valid image URL").optional(),
+  newPassword: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .optional(),
+});
 
 export const mqttConfigSchema = (isExisting = false) =>
   z.object({

@@ -9,19 +9,53 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { ShieldCheck, Check } from "lucide-react-native";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import CustomInput from "@/components/CustomInput";
 import CustomButton from "@/components/CustomButton";
+import { authService } from "@/services/authService";
+import { loginSchema } from "@/schema";
 
 const LoginScreen = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const onLogin = () => {
-    console.log("Login with:", email, password);
-  };
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    mode: "onChange",
+  });
+
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
+    setIsLoading(true);
+
+    try {
+      const result = await authService.login(values.email, values.password);
+
+      if (result.success) {
+        router.replace("/home");
+      } else {
+        form.setError("root", {
+          type: "server",
+          message: result.error || "Login failed",
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      form.setError("root", {
+        type: "server",
+        message: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <KeyboardAvoidingView
@@ -61,22 +95,44 @@ const LoginScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View className="m-6 gap-6">
-          <CustomInput
-            label="Email"
-            placeholder="m@example.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+          {form.formState.errors.root && (
+            <View className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <Text className="text-red-600 text-sm">
+                {form.formState.errors.root.message}
+              </Text>
+            </View>
+          )}
+
+          <Controller
+            control={form.control}
+            name="email"
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
+              <CustomInput
+                label="Email"
+                placeholder="m@example.com"
+                value={value}
+                onChangeText={onChange}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={error?.message}
+              />
+            )}
           />
 
-          <CustomInput
-            label="Password"
-            placeholder="********"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
+          <Controller
+            control={form.control}
+            name="password"
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
+              <CustomInput
+                label="Password"
+                placeholder="********"
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+                autoCapitalize="none"
+                error={error?.message}
+              />
+            )}
           />
 
           <View className="flex-row items-center justify-between">
@@ -102,7 +158,12 @@ const LoginScreen = () => {
             </Link>
           </View>
 
-          <CustomButton title="Login" onPress={onLogin} />
+          <CustomButton
+            title="Login"
+            onPress={form.handleSubmit(onSubmit)}
+            loading={isLoading}
+            disabled={isLoading}
+          />
 
           <View className="flex-row items-center justify-center">
             <Text className="text-muted-foreground text-base">

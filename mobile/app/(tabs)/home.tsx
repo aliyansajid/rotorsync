@@ -5,9 +5,11 @@ import {
   Alert,
   AppState,
   ScrollView,
+  Image,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   CloudSun,
   Droplet,
@@ -22,8 +24,10 @@ import {
   useNotificationHandler,
   registerForPushNotificationsAsync,
 } from "@/services/notificationHandler";
+import { authService, User } from "@/services/authService";
 
 const HomeScreen = () => {
+  const [user, setUser] = useState<User | null>(null);
   const [devices, setDevices] = useState({
     mopeka: { isEnabled: true, isConnected: true },
     bms: { isEnabled: true, isConnected: false },
@@ -49,6 +53,46 @@ const HomeScreen = () => {
 
   // Initialize notification handler
   useNotificationHandler();
+
+  // Simple user data loading - just use cached data for instant display
+  const loadUserData = () => {
+    const currentUser = authService.getCurrentUser();
+    setUser(currentUser);
+  };
+
+  // Load user data on component mount
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  // Reload user data when screen comes into focus (instant from cache)
+  useFocusEffect(
+    useCallback(() => {
+      loadUserData();
+    }, [])
+  );
+
+  // Function to get user initials
+  const getUserInitials = (fullName: string): string => {
+    if (!fullName) return "U";
+
+    const names = fullName.trim().split(" ");
+    if (names.length === 1) {
+      return names[0].charAt(0).toUpperCase();
+    }
+
+    return (
+      names[0].charAt(0) + names[names.length - 1].charAt(0)
+    ).toUpperCase();
+  };
+
+  // Function to get greeting based on time
+  const getGreeting = (): string => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning,";
+    if (hour < 17) return "Good afternoon,";
+    return "Good evening,";
+  };
 
   // Request notification permissions on component mount
   useEffect(() => {
@@ -251,15 +295,23 @@ const HomeScreen = () => {
       <View className="h-1/5 bg-primary justify-center">
         <SafeAreaView className="flex-row items-center justify-between mx-6">
           <View className="flex-row items-center gap-3">
-            <View className="w-16 h-16 bg-white/20 rounded-full justify-center items-center">
-              <Text className="text-primary-foreground text-2xl font-semibold">
-                AS
-              </Text>
+            <View className="w-16 h-16 bg-white/20 rounded-full justify-center items-center overflow-hidden">
+              {user?.image ? (
+                <Image
+                  source={{ uri: user.image }}
+                  className="w-full h-full"
+                  style={{ resizeMode: "cover" }}
+                />
+              ) : (
+                <Text className="text-primary-foreground text-2xl font-semibold">
+                  {user ? getUserInitials(user.name) : "U"}
+                </Text>
+              )}
             </View>
             <View>
-              <Text className="text-muted text-base">Welcome back,</Text>
+              <Text className="text-muted text-base">{getGreeting()}</Text>
               <Text className="text-primary-foreground text-2xl font-semibold">
-                Aliyan Sajid
+                {user ? user.name : "Loading..."}
               </Text>
             </View>
           </View>

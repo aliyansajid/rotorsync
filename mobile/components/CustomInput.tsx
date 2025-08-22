@@ -16,6 +16,7 @@ interface CustomInputProps {
   secureTextEntry?: boolean;
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  error?: string;
 }
 
 const CustomInput = ({
@@ -26,6 +27,7 @@ const CustomInput = ({
   secureTextEntry = false,
   keyboardType = "default",
   autoCapitalize = "sentences",
+  error,
 }: CustomInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -39,7 +41,11 @@ const CustomInput = ({
       <View className="relative">
         <TextInput
           className={`h-16 border rounded-xl bg-transparent px-4 text-base shadow-xs ${
-            isFocused ? "border-ring" : "border-input"
+            error
+              ? "border-red-500"
+              : isFocused
+                ? "border-ring"
+                : "border-input"
           }`}
           placeholder={placeholder}
           placeholderTextColor="#737373"
@@ -65,6 +71,8 @@ const CustomInput = ({
           </TouchableOpacity>
         )}
       </View>
+
+      {error && <Text className="text-red-500 text-sm">{error}</Text>}
     </View>
   );
 };
