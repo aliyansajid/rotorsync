@@ -4,66 +4,167 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft, ChevronDown } from "lucide-react-native";
 import CustomButton from "@/components/CustomButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { router } from "expo-router";
+import {
+  serialNumberService,
+  SerialNumber,
+} from "@/services/serialNumberService";
+import { authService } from "@/services/authService";
 
 const SerialNumberScreen = () => {
   const [selectedAssetType, setSelectedAssetType] = useState<string>("");
-  const [selectedSerialNumber, setSelectedSerialNumber] = useState<string>("");
+  const [selectedSerialNumber, setSelectedSerialNumber] =
+    useState<SerialNumber | null>(null);
   const [showAssetDropdown, setShowAssetDropdown] = useState<boolean>(false);
   const [showSerialDropdown, setShowSerialDropdown] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [serialNumbersByType, setSerialNumbersByType] = useState<{
+    [key: string]: SerialNumber[];
+  }>({});
+  const [assetTypes, setAssetTypes] = useState<string[]>([]);
 
-  // Asset types
-  const assetTypes = ["Helicopter", "Trailer"];
+  // Get current user's serial number
+  const currentSerialNumber = authService.getCurrentUser()?.serialNumber;
+  const currentAssetType = currentSerialNumber?.assetType || "";
 
-  // Serial numbers based on asset type
-  const helicopterSerials = [
-    "H-2024-001",
-    "H-2024-002",
-    "H-2024-003",
-    "H-2023-045",
-    "H-2023-046",
-  ];
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const trailerSerials = [
-    "T-2024-101",
-    "T-2024-102",
-    "T-2024-103",
-    "T-2023-089",
-    "T-2023-090",
-    "T-2023-091",
-  ];
+  const loadData = async () => {
+    try {
+      setLoading(true);
+
+      const response = await serialNumberService.getSerialNumbers();
+
+      if (!response.success || !response.data) {
+        Alert.alert("Error", response.error || "Failed to load serial numbers");
+        return;
+      }
+
+      const serialNumbers: SerialNumber[] = response.data;
+
+      // Group by asset type
+      const grouped = serialNumbers.reduce<{ [key: string]: SerialNumber[] }>(
+        (acc, serialNumber) => {
+          const assetType = serialNumber.assetType;
+          if (!acc[assetType]) {
+            acc[assetType] = [];
+          }
+          acc[assetType].push(serialNumber);
+          return acc;
+        },
+        {}
+      );
+
+      // Get unique asset types
+      const types = Array.from(
+        new Set(serialNumbers.map((item) => item.assetType))
+      ).sort();
+
+      setSerialNumbersByType(grouped);
+      setAssetTypes(types);
+    } catch (error) {
+      console.error("Error loading data:", error);
+      Alert.alert("Error", "Failed to load serial numbers");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBack = (): void => {
     router.back();
   };
 
-  const handleSave = (): void => {
-    console.log("Saved:", {
-      assetType: selectedAssetType,
-      serialNumber: selectedSerialNumber,
-    });
-    // Handle save logic here
+  const handleSave = async (): Promise<void> => {
+    if (!selectedSerialNumber) return;
+
+    try {
+      setSaving(true);
+
+      const result = await serialNumberService.updateUserSerialNumber(
+        selectedSerialNumber.id
+      );
+
+      if (result.success) {
+        Alert.alert(
+          "Success",
+          result.message || "Serial number updated successfully",
+          [
+            {
+              text: "OK",
+              onPress: () => router.back(),
+            },
+          ]
+        );
+      } else {
+        Alert.alert("Error", result.error || "Failed to save serial number");
+      }
+    } catch (error) {
+      console.error("Error saving serial number:", error);
+      Alert.alert("Error", "Failed to save serial number");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const getSerialNumbers = (): string[] => {
-    if (selectedAssetType === "Helicopter") {
-      return helicopterSerials;
-    } else if (selectedAssetType === "Trailer") {
-      return trailerSerials;
-    }
-    return [];
+  const getSerialNumbers = (): SerialNumber[] => {
+    const assetType = selectedAssetType || currentAssetType;
+    return serialNumbersByType[assetType] || [];
   };
 
   const handleAssetTypeChange = (assetType: string): void => {
     setSelectedAssetType(assetType);
-    setSelectedSerialNumber(""); // Reset serial number when asset type changes
+    setSelectedSerialNumber(null);
     setShowAssetDropdown(false);
   };
+
+  const getCurrentAssetType = (): string => {
+    return selectedAssetType || currentAssetType;
+  };
+
+  const hasAssetTypeSelected = (): boolean => {
+    return !!(selectedAssetType || currentAssetType);
+  };
+
+  useEffect(() => {
+    if (currentAssetType && !selectedAssetType) {
+      setSelectedAssetType(currentAssetType);
+    }
+  }, [currentAssetType]);
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background">
+        <StatusBar barStyle="dark-content" />
+
+        <View className="bg-background px-6 py-4 border-b border-border flex-row items-center">
+          <TouchableOpacity
+            onPress={handleBack}
+            className="flex-row items-center gap-2"
+          >
+            <ChevronLeft color="#737373" />
+            <Text className="text-foreground text-2xl font-medium">
+              Serial Numbers
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#00BC7D" />
+          <Text className="text-muted-foreground text-lg mt-4">Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -103,12 +204,12 @@ const SerialNumberScreen = () => {
             >
               <Text
                 className={
-                  selectedAssetType
+                  getCurrentAssetType()
                     ? "text-foreground text-base"
                     : "text-muted-foreground text-base"
                 }
               >
-                {selectedAssetType || "Select asset type"}
+                {getCurrentAssetType() || "Select asset type"}
               </Text>
               <ChevronDown
                 color="#737373"
@@ -143,24 +244,38 @@ const SerialNumberScreen = () => {
               Serial Number
             </Text>
             <TouchableOpacity
-              className={`border border-border rounded-xl px-4 h-16 flex-row items-center justify-between ${!selectedAssetType ? "opacity-50" : ""}`}
+              className={`border border-border rounded-xl px-4 h-16 flex-row items-center justify-between ${!hasAssetTypeSelected() ? "opacity-50" : ""}`}
               onPress={() =>
-                selectedAssetType && setShowSerialDropdown(!showSerialDropdown)
+                hasAssetTypeSelected() &&
+                setShowSerialDropdown(!showSerialDropdown)
               }
-              disabled={!selectedAssetType}
+              disabled={!hasAssetTypeSelected()}
             >
-              <Text
-                className={
-                  selectedSerialNumber
-                    ? "text-foreground text-base"
-                    : "text-muted-foreground text-base"
-                }
-              >
-                {selectedSerialNumber ||
-                  (selectedAssetType
-                    ? "Select serial number"
-                    : "Select asset type first")}
-              </Text>
+              <View className="flex-row items-center gap-1 flex-1">
+                <Text
+                  className={
+                    selectedSerialNumber || currentSerialNumber
+                      ? "text-foreground text-base font-medium"
+                      : "text-muted-foreground text-base"
+                  }
+                >
+                  {selectedSerialNumber
+                    ? selectedSerialNumber.name
+                    : currentSerialNumber
+                      ? currentSerialNumber.name
+                      : hasAssetTypeSelected()
+                        ? "Select serial number"
+                        : "Select asset type first"}
+                </Text>
+                {(selectedSerialNumber || currentSerialNumber) && (
+                  <Text className="text-muted-foreground text-sm">
+                    (
+                    {selectedSerialNumber?.serialNumber ||
+                      currentSerialNumber?.serialNumber}
+                    )
+                  </Text>
+                )}
+              </View>
               <ChevronDown
                 color="#737373"
                 size={20}
@@ -172,22 +287,31 @@ const SerialNumberScreen = () => {
               />
             </TouchableOpacity>
 
-            {showSerialDropdown && selectedAssetType && (
+            {showSerialDropdown && hasAssetTypeSelected() && (
               <View className="bg-secondary border border-border rounded-xl overflow-hidden">
-                {getSerialNumbers().map((serialNumber, index) => (
-                  <TouchableOpacity
-                    key={serialNumber}
-                    className={`p-4 ${index < getSerialNumbers().length - 1 ? "border-b border-border" : ""}`}
-                    onPress={() => {
-                      setSelectedSerialNumber(serialNumber);
-                      setShowSerialDropdown(false);
-                    }}
-                  >
-                    <Text className="text-foreground text-base">
-                      {serialNumber}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {getSerialNumbers().map((serialNumber, index) => {
+                  return (
+                    <TouchableOpacity
+                      key={serialNumber.id}
+                      className={`flex-row items-center gap-1 p-4 ${
+                        index < getSerialNumbers().length - 1
+                          ? "border-b border-border"
+                          : ""
+                      }`}
+                      onPress={() => {
+                        setSelectedSerialNumber(serialNumber);
+                        setShowSerialDropdown(false);
+                      }}
+                    >
+                      <Text className="text-foreground text-base font-medium">
+                        {serialNumber.name}
+                      </Text>
+                      <Text className="text-muted-foreground text-sm">
+                        ({serialNumber.serialNumber})
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             )}
           </View>
@@ -195,7 +319,7 @@ const SerialNumberScreen = () => {
           <CustomButton
             title="Save"
             onPress={handleSave}
-            disabled={!selectedAssetType || !selectedSerialNumber}
+            disabled={!selectedAssetType || !selectedSerialNumber || saving}
           />
         </View>
       </ScrollView>

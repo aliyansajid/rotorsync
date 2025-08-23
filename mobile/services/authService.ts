@@ -11,6 +11,12 @@ export interface User {
   role: "ADMIN" | "PILOT" | "CREW";
   image?: string | null;
   createdAt: string;
+  serialNumber?: {
+    id: string;
+    assetType: string;
+    name: string;
+    serialNumber: string;
+  } | null;
 }
 
 export interface AuthResponse {

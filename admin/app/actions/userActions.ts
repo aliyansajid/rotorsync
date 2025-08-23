@@ -105,6 +105,14 @@ export async function loginUser(data: any) {
         role: true,
         image: true,
         createdAt: true,
+        serialNumber: {
+          select: {
+            id: true,
+            assetType: true,
+            name: true,
+            serialNumber: true,
+          },
+        },
       },
     });
 

@@ -8,15 +8,6 @@ import z from "zod";
 
 export async function getSerialNumbers() {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return {
-        success: false,
-        error: "Your session has expired. Please log in again.",
-      };
-    }
-
     const serialNumbers = await prisma.serialNumber.findMany({
       orderBy: {
         createdAt: "desc",
@@ -39,15 +30,6 @@ export async function getSerialNumbers() {
 
 export async function getSerialNumberById(id: string) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return {
-        success: false,
-        error: "Your session has expired. Please log in again.",
-      };
-    }
-
     const serialNumber = await prisma.serialNumber.findUnique({
       where: { id },
     });
@@ -78,36 +60,6 @@ export async function createSerialNumber(
   data: z.infer<typeof serialNumberSchema>
 ) {
   try {
-    // Get the current session
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return {
-        success: false,
-        error: "Your session has expired. Please log in again.",
-      };
-    }
-
-    // Check if user is admin
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true, fullName: true },
-    });
-
-    if (!user) {
-      return {
-        success: false,
-        error: "User not found",
-      };
-    }
-
-    if (user.role !== "ADMIN") {
-      return {
-        success: false,
-        error: "Only admin can create serial numbers",
-      };
-    }
-
     // Validate the input data
     const validatedData = serialNumberSchema.parse(data);
 
@@ -156,28 +108,6 @@ export async function updateSerialNumber(
   data: z.infer<typeof serialNumberSchema>
 ) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return {
-        success: false,
-        error: "Your session has expired. Please log in again.",
-      };
-    }
-
-    // Check if user is admin
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    });
-
-    if (!user || user.role !== "ADMIN") {
-      return {
-        success: false,
-        error: "Only admin can update serial numbers",
-      };
-    }
-
     // Validate the input data
     const validatedData = serialNumberSchema.parse(data);
 
@@ -224,28 +154,6 @@ export async function updateSerialNumber(
 
 export async function deleteSerialNumber(id: string) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return {
-        success: false,
-        error: "Your session has expired. Please log in again.",
-      };
-    }
-
-    // Check if user is admin
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    });
-
-    if (!user || user.role !== "ADMIN") {
-      return {
-        success: false,
-        error: "Only admin can delete serial numbers",
-      };
-    }
-
     // Delete the serial number
     await prisma.serialNumber.delete({
       where: { id },
@@ -262,6 +170,70 @@ export async function deleteSerialNumber(id: string) {
     return {
       success: false,
       error: "Failed to delete serial number. Please try again.",
+    };
+  }
+}
+
+export async function updateUserSerialNumber(
+  serialNumberId: string,
+  userId: string
+) {
+  try {
+    // Verify that the serial number exists
+    const serialNumber = await prisma.serialNumber.findUnique({
+      where: { id: serialNumberId },
+    });
+
+    if (!serialNumber) {
+      return {
+        success: false,
+        error: "Serial number not found",
+      };
+    }
+
+    // Verify that the user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        error: "User not found",
+      };
+    }
+
+    // Update the user's serial number
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { serialNumberId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        image: true,
+        serialNumber: {
+          select: {
+            id: true,
+            assetType: true,
+            name: true,
+            serialNumber: true,
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      message: "Serial number updated successfully",
+      data: updatedUser,
+    };
+  } catch (error) {
+    console.error("Error updating user serial number:", error);
+    return {
+      success: false,
+      error: "Failed to update serial number. Please try again.",
     };
   }
 }

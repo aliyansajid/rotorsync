@@ -79,7 +79,7 @@ class MqttService {
   private appStateSubscription: any = null;
   private currentAppState: AppStateStatus = "active";
   private reconnectAttempts: number = 0;
-  private maxReconnectAttempts: number = 10; // Increased for background mode
+  private maxReconnectAttempts: number = 10;
   private reconnectInterval: number = 5000;
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private lastActiveTime: number = Date.now();

@@ -20,14 +20,15 @@ enum AssetType {
 }
 
 model User {
-  id       String   @id @default(cuid())
-  name     String
-  email    String   @unique
-  password String
-  image    String?
-  role     UserRole @default(CREW)
+  id             String   @id @default(cuid())
+  name           String
+  email          String   @unique
+  password       String
+  image          String?
+  role           UserRole @default(CREW)
+  serialNumberId String?
 
-  // Relations
+  serialNumber  SerialNumber?  @relation(fields: [serialNumberId], references: [id])
   mopekaSensors MopekaSensor[]
   bmsSensors    BMS[]
   raspiSensors  Raspi[]
@@ -49,13 +50,13 @@ model MopekaSensor {
   tankSizeInch      Float
   threshold         Float
   heightOffset      Float
-  trailerId         String
+  serialNumberId    String
   calibrationPoints Float[]
   createdBy         String
 
-  // Relations
-  creator    User         @relation(fields: [createdBy], references: [id])
-  mopekaData MopekaData[]
+  creator      User         @relation(fields: [createdBy], references: [id])
+  serialNumber SerialNumber @relation(fields: [serialNumberId], references: [id])
+  mopekaData   MopekaData[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -64,17 +65,17 @@ model MopekaSensor {
 }
 
 model BMS {
-  id         String @id @default(cuid())
-  name       String
-  deviceName String
-  mqttTopic  String
-  threshold  Float
-  trailerId  String
-  createdBy  String
+  id             String @id @default(cuid())
+  name           String
+  deviceName     String
+  mqttTopic      String
+  threshold      Float
+  serialNumberId String
+  createdBy      String
 
-  // Relations
-  creator User      @relation(fields: [createdBy], references: [id])
-  bmsData BMSData[]
+  creator      User         @relation(fields: [createdBy], references: [id])
+  serialNumber SerialNumber @relation(fields: [serialNumberId], references: [id])
+  bmsData      BMSData[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,17 +84,17 @@ model BMS {
 }
 
 model Raspi {
-  id           String  @id @default(cuid())
-  name         String
-  deviceName   String
-  mqttTopic    String
-  helicopterId String?
-  trailerId    String?
-  createdBy    String
+  id             String @id @default(cuid())
+  name           String
+  deviceName     String
+  mqttTopic      String
+  serialNumberId String // CHANGE: from helicopterId/trailerId to serialNumberId
+  createdBy      String
 
   // Relations
-  creator   User        @relation(fields: [createdBy], references: [id])
-  raspiData RaspiData[]
+  creator      User         @relation(fields: [createdBy], references: [id])
+  serialNumber SerialNumber @relation(fields: [serialNumberId], references: [id]) // ADD THIS LINE
+  raspiData    RaspiData[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -102,17 +103,16 @@ model Raspi {
 }
 
 model TiltSensor {
-  id           String  @id @default(cuid())
-  name         String
-  deviceName   String
-  mqttTopic    String
-  helicopterId String?
-  trailerId    String?
-  createdBy    String
+  id             String @id @default(cuid())
+  name           String
+  deviceName     String
+  mqttTopic      String
+  serialNumberId String
+  createdBy      String
 
-  // Relations
-  creator  User       @relation(fields: [createdBy], references: [id])
-  tiltData TiltData[]
+  creator      User         @relation(fields: [createdBy], references: [id])
+  serialNumber SerialNumber @relation(fields: [serialNumberId], references: [id])
+  tiltData     TiltData[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -121,10 +121,16 @@ model TiltSensor {
 }
 
 model SerialNumber {
-  id           String @id @default(cuid())
+  id           String    @id @default(cuid())
   assetType    AssetType
   name         String
-  serialNumber String @unique
+  serialNumber String    @unique
+
+  users         User[]
+  mopekaSensors MopekaSensor[]
+  bmsSensors    BMS[]
+  raspiSensors  Raspi[]
+  tiltSensors   TiltSensor[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

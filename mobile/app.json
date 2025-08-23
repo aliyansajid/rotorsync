@@ -53,14 +53,6 @@
       ],
       ["expo-task-manager"],
       [
-        "expo-background-fetch",
-        {
-          "android": {
-            "minimumInterval": 15000
-          }
-        }
-      ],
-      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon-dark.png",
